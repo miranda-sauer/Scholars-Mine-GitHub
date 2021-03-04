@@ -1,3 +1,6 @@
+#.gitignore is the place to list files which should not be pushed to the git repo
+
+#Extra Files for the Control Panel Application
 Control Panel\CODE Version 1.6\__pycache__
 Control Panel\CODE Version 1.6\build
 Control Panel\CODE Version 1.6\dist
