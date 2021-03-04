@@ -1,0 +1,49 @@
+DO:
+
+Anytime a file is opened, add a try and catch statement. If the file cannot be found, add a pop-up stating that the file did not exist.
+
+Finish error tab, have it update for each run of a program what error have occured. (maybe use a pop up warning instead?)
+
+add warning pop-up if excel file is open
+
+There is an excel file with known meetings, update what I am using and make it work.
+
+make an executable file
+	https://datatofish.com/executable-pyinstaller/
+
+make proper documentation
+	use latex?
+
+check institution and verify if they are actually faculty
+	may be able to use thing from austin
+	located in libarchive>>a>>zzz_Programs>>faculty database file
+
+use author split program
+
+middle names are being seperated
+
+program for thesis and disertation fixed 
+	contains titles 
+	list for greek letters
+
+titles that are in all caps, changed back to lowercase, set first letter to uppercase
+	asap utilites - might be helpful for this
+		change case with options
+		capitalize after dash
+		replace longer dashes with smaller ones (line 62 vs line 38)
+
+rights be have to be a manual thing
+	maybe have a list of publishers and see if it can find those rights and add to the list?
+	compare to first author
+
+fill known meetings text file with known meetings
+
+	Nancy's Message: We used to have a list of conferences. 
+	I've copied it over to the Authority Control/Lookups 
+	spreadsheet (in References in Teams). Of course, the 
+	dates and locations change each year for the conferences 
+	that have an annual meeting. Many times several faculty 
+	present at these conferences, often more than once. It 
+	might be worth looking into the conferences that are 
+	attended. I can export a list from Scholars' Mine. This 
+	could also be used to autofill publisher and rights.
