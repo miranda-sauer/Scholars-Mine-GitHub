@@ -213,7 +213,7 @@ def char_to_sup(argument):
 # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * #
 
 def search_database(l_name, f_name):
-    conn = sqlite3.connect('**/*/Control Panel/CODE/faculty.db')
+    conn = sqlite3.connect('R:/storage/libarchive/b/1. Processing/8. Other Projects/Scholars-Mine-GitHub/Control Panel/CODE/faculty.db')
 
     c = conn.cursor()
 
@@ -245,7 +245,7 @@ def open_harvesting():
     harvesting = Toplevel()
     harvesting.title("Harvesting Program")
     harvesting.configure(bg = '#003B49')
-    harvesting.iconbitmap('**/*/Control Panel/CODE/S&T_Logo.ico')
+    harvesting.iconbitmap('R:/storage/libarchive/b/1. Processing/8. Other Projects/Scholars-Mine-GitHub/Control Panel/CODE/S&T_Logo.ico')
 
     # Center the window on the screen
     window_w = 400 # window width
@@ -640,7 +640,7 @@ def open_harvesting():
             filled = False
 
             # Open Known Meetings File
-            path = '**/*/Control Panel/CODE/Harvesting/KnownMeetings.txt'
+            path = 'R:/storage/libarchive/b/1. Processing/8. Other Projects/Scholars-Mine-GitHub/Control Panel/CODE/Harvesting/KnownMeetings.txt'
             with open(path, "r") as all_meetings:
                 # Check for matching meetings
                 for one_meeting in all_meetings:
