@@ -24,9 +24,9 @@ def remove_dash(col_value):
 
     while index >= 0 and index < len(col_value):                                    # Search through string with a valid index
         if '-' in col_value[index]:                                                 # Find dash
-            col_value = col_value[:index] + ' thru ' + col_value[index + 1:]        # Remove dash and replace with thru 
+            col_value = col_value[:index] + ' thru ' + col_value[index + 1:]        # Remove dash and replace with thru
         index += 1                                                                  # Increment index
-        
+
     return col_value                                                                # Return string without dash
 
 
@@ -120,7 +120,7 @@ def replace_sub_sup(title):
 
     while('</sup>' in title):                           #if there is a sup to replace...
         index = 0                                           #start at the beginning of the string
-        while(index < len(title)):                         #while the index is in the string   
+        while(index < len(title)):                         #while the index is in the string
             if '<sup>' in title[index:index + 5]:               #find were '<sup>' is in the string
                 title = title[0:index] + title[index + 5:]          #get rid of '<sup>' in the string
                 while(title[index] != '<'):                         #while the index isn't '<'
@@ -129,7 +129,7 @@ def replace_sub_sup(title):
                 title = title[0:index] + title[index + 6:]          #get rid of '</sup>' in the string
             index += 1                                          #increment the index
     return title
- 
+
 
 
 # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * #
@@ -137,10 +137,10 @@ def replace_sub_sup(title):
 # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * #
 
 def char_to_sub(argument):
-    output = '' 
-    switcher = { 
-        '0': '\u2080', 
-        '1': '\u2081', 
+    output = ''
+    switcher = {
+        '0': '\u2080',
+        '1': '\u2081',
         '2': '\u2082',
         '3': '\u2083',
         '4': '\u2084',
@@ -166,24 +166,24 @@ def char_to_sub(argument):
         'p': '\u209A',
         's': '\u209B',
         't': '\u209C',
-    }  
+    }
     output = switcher.get(argument, '?')
     if '?' in output:
         SUB = str.maketrans("aehijklmnoprstuvxy", "ₐₑₕᵢⱼₖₗₘₙₒₚᵣₛₜᵤᵥₓᵧ")
         output = argument.translate(SUB)
     return output
- 
+
 
 
 # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * #
 #           CHARACTER TO SUPERSCRIPT                                                #
 # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * #
 
-def char_to_sup(argument): 
+def char_to_sup(argument):
     output = ''
-    switcher = { 
-        '0': '\u2070', 
-        '1': '\u00B9', 
+    switcher = {
+        '0': '\u2070',
+        '1': '\u00B9',
         '2': '\u00B2',
         '3': '\u00B3',
         '4': '\u2074',
@@ -199,13 +199,13 @@ def char_to_sup(argument):
         '(': '\u207D',
         ')': '\u207E',
         'n': '\u207F',
-    }  
+    }
     output = switcher.get(argument, '?')
     if '?' in output:
         SUP = str.maketrans("ABDEGHIJKLMNOPRTUVWabcdefghijklmnoprstuvwxyz", "ᴬᴮᴰᴱᴳᴴᴵᴶᴷᴸᴹᴺᴼᴾᴿᵀᵁⱽᵂᵃᵇᶜᵈᵉᶠᵍʰⁱʲᵏˡᵐⁿᵒᵖʳˢᵗᵘᵛʷˣʸᶻ")
         output = argument.translate(SUP)
     return output
-    
+
 
 
 # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * #
@@ -213,7 +213,7 @@ def char_to_sup(argument):
 # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * #
 
 def search_database(l_name, f_name):
-    conn = sqlite3.connect('R:/storage/libarchive/b/1. Processing/8. Other Projects/Control Panel/CODE/faculty.db')
+    conn = sqlite3.connect('**/*/Control Panel/CODE/faculty.db')
 
     c = conn.cursor()
 
@@ -244,8 +244,8 @@ def open_harvesting():
     # Create window
     harvesting = Toplevel()
     harvesting.title("Harvesting Program")
-    harvesting.configure(bg = '#003B49')    
-    harvesting.iconbitmap('R:/storage/libarchive/b/1. Processing/8. Other Projects/Control Panel/CODE/S&T_Logo.ico')
+    harvesting.configure(bg = '#003B49')
+    harvesting.iconbitmap('**/*/Control Panel/CODE/S&T_Logo.ico')
 
     # Center the window on the screen
     window_w = 400 # window width
@@ -272,7 +272,7 @@ def open_harvesting():
     # Open Help Function
     def open_help():
         # Open word document
-        os.startfile("R:/storage/libarchive/b/1. Processing/8. Other Projects/Control Panel/Documentation/Harvesting Help.docx")
+        os.startfile("**/*/Control Panel/Documentation/Harvesting Help.docx")
 
     # Create a button
     help_button = Button(harvesting, text = "Help", command = lambda : open_help(), bg = '#78BE20', fg = '#003B49', font = 'tungsten 12 bold', borderwidth = 1, relief = "ridge")
@@ -287,13 +287,13 @@ def open_harvesting():
     exit_button.pack(padx = (250, 10), pady = (5, 0))
 
     # Update Progress Bar
-    def update_progress(p, t):  
+    def update_progress(p, t):
         # Update bar value
         progress['value'] = (p/9)*100
 
         # Update bar label
         task.config(text = t)
-        task.pack() 
+        task.pack()
 
         # Refresh window (very important line!)
         harvesting.update_idletasks()
@@ -326,7 +326,7 @@ def open_harvesting():
         old_book = load_workbook(old_path)  #read file
         old_sheet = old_book.active         #read sheet
 
-        # Create a workbook and worksheet 
+        # Create a workbook and worksheet
         new_book = Workbook()               #create workbook
         new_sheet = new_book.active         #create worksheet
 
@@ -340,11 +340,11 @@ def open_harvesting():
                      "issn", "oclc_electronic", "oclc_print", "patent_application", "patent_number", "technical_report",
                      "document_type", "document_version", "file_type", "language_iso", "language2", "table_of_contents",
                      "rights", "distribution_license", "publication_date", "custom_publication_date", "publisher",
-                     "publisher_place", "source_publication", "volnum", "issnum", "fpage", "lpage", "pubmedid", 
-                     "disciplines", "geolocate", "latitude", "longitude", "embargo_date", "date_uploaded", 
-                     "last_revision_date", "supplementary_documents_attached", "primary_document_attached", 
+                     "publisher_place", "source_publication", "volnum", "issnum", "fpage", "lpage", "pubmedid",
+                     "disciplines", "geolocate", "latitude", "longitude", "embargo_date", "date_uploaded",
+                     "last_revision_date", "supplementary_documents_attached", "primary_document_attached",
                      "from_abstract", "copyright"]
-        
+
         # Add Column Headers (before authors)
         new_col = 1
         for header in headers:
@@ -365,14 +365,14 @@ def open_harvesting():
             index += 1
 
         # Adds the 7 headers for an author
-        def add_author_headers(new_col, num): #takes in starting column and author number   
+        def add_author_headers(new_col, num): #takes in starting column and author number
             #add headers to worksheet
             new_sheet.cell(1,  new_col).value = f'author{num}_fname'
             new_sheet.cell(1,  new_col+1).value = f'author{num}_mname'
             new_sheet.cell(1,  new_col+2).value = f'author{num}_lname'
             new_sheet.cell(1,  new_col+3).value = f'author{num}_suffix'
-            new_sheet.cell(1,  new_col+4).value = f'author{num}_email' 
-            new_sheet.cell(1,  new_col+5).value = f'author{num}_institution' 
+            new_sheet.cell(1,  new_col+4).value = f'author{num}_email'
+            new_sheet.cell(1,  new_col+5).value = f'author{num}_institution'
             new_sheet.cell(1,  new_col+6).value = f'author{num}_is_corporate'
 
         # Add authors
@@ -384,25 +384,25 @@ def open_harvesting():
         new_max_col = len([c for c in new_sheet.iter_cols(min_row=1, max_row=1, values_only=True) if c[0] is not None])
 
         def new_index(new_header):
-            for new_col in range(1, new_max_col + 1):               
+            for new_col in range(1, new_max_col + 1):
                 new_col_head = new_sheet.cell(1, new_col).value
                 if new_header in new_col_head:
                     return new_col
 
         def specific_new_index(new_header, do_not_include):
-            for new_col in range(1, new_max_col + 1):               
+            for new_col in range(1, new_max_col + 1):
                 new_col_head = new_sheet.cell(1, new_col).value
                 if new_header in new_col_head and do_not_include not in new_col_head:
                     return new_col
 
         def old_index(old_header):
-            for old_col in range(1, old_max_col + 1):               
+            for old_col in range(1, old_max_col + 1):
                 old_col_head = old_sheet.cell(1, old_col).value
                 if old_header in old_col_head:
                     return old_col
-                    
+
         def specific_old_index(old_header, do_not_include):
-            for old_col in range(1, old_max_col + 1):               
+            for old_col in range(1, old_max_col + 1):
                 old_col_head = old_sheet.cell(1, old_col).value
                 if old_header in old_col_head and do_not_include not in old_col_head:
                     return old_col
@@ -426,7 +426,7 @@ def open_harvesting():
                 copy(new_index('open_access'), old_index('Open Access'))
             except TypeError:
                 if row == 2:
-                    print("Couldn't find 'open_access' column.") 
+                    print("Couldn't find 'open_access' column.")
 
             # url
             try:
@@ -529,7 +529,7 @@ def open_harvesting():
                             fill(new_index('isbn'), str(first_num) + ";" + str(second_num)) #output to cell
                             break
                 else:                                           #one number
-                   fill(new_index('isbn'), format_isbn(val_in)) #output to cell 
+                   fill(new_index('isbn'), format_isbn(val_in)) #output to cell
 
             # issn
             e_ISSN = False
@@ -553,7 +553,7 @@ def open_harvesting():
 
             output = ''
 
-            if issn and e_ISSN:        
+            if issn and e_ISSN:
                 output = val_out2 + '; ' + val_out                  #outputs both issn
             else:
                 if e_ISSN:
@@ -599,7 +599,7 @@ def open_harvesting():
             except TypeError:
                 if row == 2:
                     print("Couldn't find 'publication_date' column.")
-            
+
             try:
                 if new_sheet.cell(row, specific_new_index('publication_date', 'custom')).value:
                     date = str(new_sheet.cell(row, specific_new_index('publication_date', 'custom')).value)
@@ -629,18 +629,18 @@ def open_harvesting():
                     output = day + ' ' + month + ' ' + year
 
                     # Output
-                    fill(new_index('custom_publication_date'), output)  
-            except:               
+                    fill(new_index('custom_publication_date'), output)
+            except:
                 print ("Unusual formatting in 'publication_date' column")
 
 
         #line 28 and 19 are meetings (proceedings)
         #text file with open access to check
             # source_publication
-            filled = False    
+            filled = False
 
             # Open Known Meetings File
-            path = 'R:/storage/libarchive/b/1. Processing/8. Other Projects/Control Panel/CODE/Harvesting/KnownMeetings.txt'
+            path = '**/*/Control Panel/CODE/Harvesting/KnownMeetings.txt'
             with open(path, "r") as all_meetings:
                 # Check for matching meetings
                 for one_meeting in all_meetings:
@@ -651,7 +651,7 @@ def open_harvesting():
                             filled = True
                             fill(new_index('source_publication'), 'Proceedings of the ' + check)
                         break
-                        
+
             if filled == False:
                 try:
                     copy(new_index('source_publication'), old_index('source_publication'))
@@ -664,21 +664,21 @@ def open_harvesting():
                 copy(new_index('volnum'), old_index('volnum'))
             except TypeError:
                 if row == 2:
-                    print("Couldn't find 'volnum' column.")  
+                    print("Couldn't find 'volnum' column.")
 
             # issnum
             try:
                 copy(new_index('issnum'), old_index('issnum'))
             except TypeError:
                 if row == 2:
-                    print("Couldn't find 'issnum' column.") 
+                    print("Couldn't find 'issnum' column.")
 
             # fpage
             try:
                 copy(new_index('fpage'), old_index('fpage'))
             except TypeError:
                 if row == 2:
-                    print("Couldn't find 'fpage' column.") 
+                    print("Couldn't find 'fpage' column.")
 
             # lpage
             try:
@@ -703,8 +703,8 @@ def open_harvesting():
             fill(new_index('primary_document_attached'), 'no')
 
         #identify s&t authors
-            
-            # copy author information 
+
+            # copy author information
             for num in range(1, a_count + 1):               #copy author information
                 copy(new_index(f'author{num}_fname'), old_index(f'author{num}_fname'))
                 copy(new_index(f'author{num}_mname'), old_index(f'author{num}_mname'))
@@ -733,8 +733,8 @@ def open_harvesting():
         for row in range(2, new_max_row):
             title = new_sheet.cell(row, new_index('title')).value
             fill(new_index('title'), manual_upper(title))
-            
-        # Fix Subscripts and 
+
+        # Fix Subscripts and
         update_progress(4, "Harvesting files...") # Fixing subscripts and superscripts
 
         for row in range(2, new_max_row):
@@ -748,7 +748,7 @@ def open_harvesting():
             col_value = str(new_sheet.cell(row, new_index('issnum')).value)
             if col_value:                                                   #if a value exists
                 if '00:00:00' in col_value:                                 #change date to number
-                    fill(new_index('issnum'), date_to_num(str(col_value)))  
+                    fill(new_index('issnum'), date_to_num(str(col_value)))
                 elif '-' in col_value:                                      #get rid of dash
                     fill(new_index('issnum'), remove_dash(str(col_value)))
 
@@ -788,8 +788,8 @@ def open_harvesting():
     #
     #            #print(author)
     #            #print()
-    #            
-    #            
+    #
+    #
     #            print('Email before: ' + str(author[4]))
     #            print()
     #
@@ -804,7 +804,7 @@ def open_harvesting():
     #                print('Email added to row: ' + str(row) + '\t\tAuthor #: ' + str(num))
     #                print()
     #
-    #            # Remove institution for any that aren't S&T (this includes co-authors and s&t students)        
+    #            # Remove institution for any that aren't S&T (this includes co-authors and s&t students)
 
         # Format Columns
         update_progress(7, "Harvesting files...") # Adjusting column width
@@ -838,7 +838,7 @@ def open_harvesting():
     # Create a button
     browse_button = Button(frame, text = "Browse", command = lambda : browse(), bg = '#78BE20', fg = '#003B49', font = 'tungsten 12 bold', borderwidth = 1, relief = "ridge")
     start_button = Button(frame, text = "Start", command = lambda : start(), bg = '#78BE20', fg = '#003B49', font = 'tungsten 12 bold', borderwidth = 1, relief = "ridge")
-    
+
     # Place in frame
     browse_button.grid(row = 0, column = 0, padx = (15, 0), pady = 15)
     start_button.grid(row = 0, column = 1, padx = 15, pady = 15)
