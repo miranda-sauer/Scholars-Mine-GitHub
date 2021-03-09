@@ -7,7 +7,8 @@ import time
 from openpyxl import Workbook
 from openpyxl import load_workbook
 from openpyxl.utils.cell import get_column_letter
-from openpyxl.styles import Alignment
+from openpyxl.styles import Alignment, PatternFill
+from openpyxl.styles.colors import Color
 from tkinter import *
 from tkinter import filedialog
 from tkinter import ttk
@@ -383,6 +384,9 @@ def open_harvesting():
         # Determine how many columns are in the sheet that is being written to
         new_max_col = len([c for c in new_sheet.iter_cols(min_row=1, max_row=1, values_only=True) if c[0] is not None])
 
+        # Creates yellow background fill
+        yellow = PatternFill(patternType = 'solid', fgColor = 'fffb00')
+
         def new_index(new_header):
             for new_col in range(1, new_max_col + 1):
                 new_col_head = new_sheet.cell(1, new_col).value
@@ -424,6 +428,8 @@ def open_harvesting():
             # open_access
             try:
                 copy(new_index('open_access'), old_index('Open Access'))
+                # make column yellow
+                new_sheet.cell(row, new_index('open_access')).fill = yellow
             except TypeError:
                 if row == 2:
                     print("Couldn't find 'open_access' column.")
@@ -431,6 +437,8 @@ def open_harvesting():
             # url
             try:
                 copy(new_index('url'), old_index('source_fulltext_url'))
+                # make column yellow
+                new_sheet.cell(row, new_index('url')).fill = yellow
             except TypeError:
                 if row == 2:
                     print("Couldn't find 'url' column.")
@@ -640,7 +648,7 @@ def open_harvesting():
             filled = False
 
             # Open Known Meetings File
-            path = 'R:/storage/libarchive/b/1. Processing/8. Other Projects/Scholars-Mine-GitHub/Control Panel/CODE/Harvesting/KnownMeetings.txt'
+            path = 'R:/storage/libarchive/b/1. Processing/8. Other Projects/Scholars-Mine-GitHub/Control Panel/CODE/Harvesting/Text Files/KnownMeetings.txt'
             with open(path, "r") as all_meetings:
                 # Check for matching meetings
                 for one_meeting in all_meetings:
@@ -701,6 +709,22 @@ def open_harvesting():
 
             # primary_document_attached
             fill(new_index('primary_document_attached'), 'no')
+
+            # from_abstract
+            try:
+                # make column yellow
+                new_sheet.cell(row, new_index('from_abstract')).fill = yellow
+            except TypeError:
+                if row == 2:
+                    print("Couldn't find 'from_abstract' column.")
+
+            # copyright
+            try:
+                # make column yellow
+                new_sheet.cell(row, new_index('copyright')).fill = yellow
+            except TypeError:
+                if row == 2:
+                    print("Couldn't find 'copyright' column.")
 
         #identify s&t authors
 
