@@ -31,7 +31,7 @@ def open_open_all():
     screen_h = open_all.winfo_screenheight() # screen height
 
     x_coor = (screen_w/2) - (window_w/2) #middle of screen x coordinate
-    y_coor = (screen_h/2) - (window_h/2) #middle of screen y coordinate
+    y_coor = (screen_h/2) #lower half of screen y coordinate
 
     open_all.geometry("%dx%d+%d+%d" % (window_w, window_h, x_coor, y_coor)) # place in middle
 

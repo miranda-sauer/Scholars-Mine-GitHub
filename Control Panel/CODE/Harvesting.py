@@ -256,7 +256,7 @@ def open_harvesting():
     screen_h = harvesting.winfo_screenheight() # screen height
 
     x_coor = (screen_w/2) - (window_w/2) #middle of screen x coordinate
-    y_coor = (screen_h/2) - (window_h/2) #middle of screen y coordinate
+    y_coor = (screen_h/2) #lower half of screen y coordinate
 
     harvesting.geometry("%dx%d+%d+%d" % (window_w, window_h, x_coor, y_coor)) # place in middle
 
@@ -286,6 +286,13 @@ def open_harvesting():
     task.pack(padx = 20)
     help_button.pack(padx = (331, 10), pady = 0)
     exit_button.pack(padx = (250, 10), pady = (5, 0))
+
+    # Create Error Log
+    def update_error_log(file_name, error_message):
+        current_time = datetime.datetime.now()
+        path = "R:/storage/libarchive/b/1. Processing/8. Other Projects/Scholars-Mine-GitHub/Control Panel/Documentation/Error Log.txt"
+        with open(path, "a+") as el: #Open error log to append
+            el.write("\n" + str(current_time) + "\tOpen All : " + str(file_name) + " : " + str(error_message)) #Append Error Log
 
     # Update Progress Bar
     def update_progress(p, t):
@@ -320,7 +327,7 @@ def open_harvesting():
 
     # Main Function
     def main(file_name):
-        update_progress(1, "Harvesting files...") # Getting preliminary information
+        update_progress(1, "Harvesting files...")
 
         # Load Excel File
         old_path = str(file_name)

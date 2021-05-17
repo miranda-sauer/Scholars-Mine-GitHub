@@ -29,7 +29,7 @@ def open_make_folder():
     screen_h = make_folder.winfo_screenheight() # screen height
 
     x_coor = (screen_w/2) - (window_w/2) #middle of screen x coordinate
-    y_coor = (screen_h/2) - (window_h/2) #middle of screen y coordinate
+    y_coor = (screen_h/2) #lower half of screen y coordinate
 
     make_folder.geometry("%dx%d+%d+%d" % (window_w, window_h, x_coor, y_coor)) # place in middle
 
