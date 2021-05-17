@@ -9,6 +9,7 @@ import os
 import shutil
 from openpyxl import Workbook
 from openpyxl import load_workbook
+from openpyxl.utils.cell import get_column_letter
 
 
 
@@ -82,7 +83,7 @@ def open_reformat_harvesting():
         update_progress(0, "Waiting for a file")
 
         # Open file
-        reformat_harvesting.filename = filedialog.askopenfilename(initialdir = "R:/storage/libarchive", title = "Select Input", filetypes = (("Excel Workbook", "*.xlsx"),))
+        reformat_harvesting.filename = filedialog.askopenfilename(initialdir = "R:/storage/libarchive/b/1. Processing/8. Other Projects/Harvesting/Excel Files", title = "Select Input", filetypes = (("Excel Workbook", "*.xlsx"),))
 
         #Get file name
         name = reformat_harvesting.filename
@@ -103,12 +104,79 @@ def open_reformat_harvesting():
         book = load_workbook(path)  #read file
         sheet = book.active         #read sheet
 
-        # Code Here !!!!
-        
-        # Save excel
-        update_progress(2, "Saving file...") # Saving
+        # Determine how many columns are in the sheet that is being read from
+        max_col = len([c for c in sheet.iter_cols(min_row=1, max_row=1, values_only=True) if c[0] is not None])
 
-        path = str(file_name)[:len(file_name) - 5] + '_Complete.xlsx'
+        # Starting author count
+        last_cell = str(sheet.cell(1, max_col).value)[6:]
+
+        index = 0
+        for letter in last_cell:
+            if letter == '_':
+                author_count = int(last_cell[:index])
+                break
+            index += 1
+
+        def index(header):
+            for col in range(1, max_col + 1):
+                col_head = sheet.cell(1, col).value
+                if header in col_head:
+                    return col
+
+        def specific_index(header, do_not_include):
+            for col in range(1, max_col + 1):
+                col_head = sheet.cell(1, col).value
+                if header in col_head and do_not_include not in col_head:
+                    return col
+
+        # Copy Information
+        # new_col is the column index where info is being copied to
+        # old_col is the column index where info is being copied from
+        def copy(new_col, old_col):
+            sheet.cell(row, new_col).value = sheet.cell(row, old_col).value
+
+        # Fill Information
+        # col is the column index where info is being filled (new excel)
+        # fill_text is the text that is filled into the new excel
+        def fill(col, fill_text):
+            sheet.cell(row, col).value = fill_text
+
+        # Fill author_split column
+        def author_split_information(row):
+
+            for num in range(1, sheet.cell(row, index("total_author_count")).value + 1):
+                # name information
+                last_name = sheet.cell(row, index("author" + str(num) + "_lname")).value
+                first_name = sheet.cell(row, index("author" + str(num) + "_fname")).value
+                first_initial = first_name[0:1]
+
+                if num > 1:
+                    author_split = str(sheet.cell(row, index("author_split")).value) + " and " + str(last_name) + ", " + str(first_initial) + "."
+                else:
+                    author_split = str(last_name) + ", " + str(first_initial) + "."
+
+                try:
+                    # author_split
+                    fill(index('author_split'), str(author_split))
+                except TypeError:
+                    if row == 2:
+                        print("Couldn't find 'author_split' column.")
+
+
+        # Determine how many rows are in the sheet that is being read from
+        max_row = len([c for c in sheet.iter_rows(min_col=1, max_col=1, values_only=True) if c[0] is not None])
+        #max_row -= 1 # Because of the "in Scholars' Mine" at the bottom
+
+        # Transfer row information for the whole sheet
+        update_progress(2, "Reformating Harvesting...") # Filling in " + str(max_row) + " rows
+
+        for row in range(2, max_row + 1):
+            author_split_information(row)
+
+        # Save excel
+        update_progress(3, "Saving file...") # Saving
+
+        path = str(file_name)[:len(file_name) - 5] + '_Reformatted.xlsx'
         book.save(path)
 
         update_progress(3, "Excel Created")

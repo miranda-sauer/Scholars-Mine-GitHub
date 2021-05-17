@@ -351,7 +351,7 @@ def open_harvesting():
                      "publisher_place", "source_publication", "volnum", "issnum", "fpage", "lpage", "pubmedid",
                      "disciplines", "geolocate", "latitude", "longitude", "embargo_date", "date_uploaded",
                      "last_revision_date", "supplementary_documents_attached", "primary_document_attached",
-                     "from_abstract", "copyright"]
+                     "from_abstract", "copyright", "author_split"]
 
         # Add Column Headers (before authors)
         new_col = 1
@@ -856,7 +856,7 @@ def open_harvesting():
         # Save excel
         update_progress(8, "Harvesting files...") # Saving
 
-        new_path = str(file_name)[:len(file_name) - 5] + '_Complete.xlsx'
+        new_path = str(file_name)[:len(file_name) - 5] + '_Harvested.xlsx'
         new_book.save(new_path)
 
         update_progress(9, "Excel Created")
