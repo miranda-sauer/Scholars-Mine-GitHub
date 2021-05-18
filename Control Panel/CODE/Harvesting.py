@@ -268,7 +268,7 @@ def open_harvesting():
 
     # Create a label
     task = Label(harvesting, text = "Waiting for a file", bg = '#003B49', fg = 'white', font = 'tungsten 12 bold')
-    file_label = Label(harvesting, text = "Folder: N/A", bg = '#003B49', fg = 'white', font = 'tungsten 12 bold')
+    file_label = Label(harvesting, text = "File: N/A", bg = '#003B49', fg = 'white', font = 'tungsten 12 bold')
 
     # Open Help Function
     def open_help():
@@ -322,7 +322,7 @@ def open_harvesting():
                 name = "File: " + name[-(i-1):]
                 break
 
-        #Update Folder Name Label
+        #Update File Name Label
         file_label.config(text = name)
 
     # Main Function

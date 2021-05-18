@@ -44,7 +44,7 @@ def open_reformat_harvesting():
 
     # Create a label
     task = Label(reformat_harvesting, text = "Waiting for a file", bg = '#003B49', fg = 'white', font = 'tungsten 12 bold')
-    file_label = Label(reformat_harvesting, text = "Folder: N/A", bg = '#003B49', fg = 'white', font = 'tungsten 12 bold')
+    file_label = Label(reformat_harvesting, text = "File: N/A", bg = '#003B49', fg = 'white', font = 'tungsten 12 bold')
 
 
     # Open Help Function
@@ -89,10 +89,10 @@ def open_reformat_harvesting():
         name = reformat_harvesting.filename
         for i in range(len(name)):
             if "/" in name[-(i)]:
-                name = "Folder: " + name[-(i-1):]
+                name = "File: " + name[-(i-1):]
                 break
 
-        #Update Folder Name Label
+        #Update File Name Label
         file_label.config(text = name)
 
     # Main Function

@@ -3,6 +3,7 @@ from tkinter import filedialog
 from tkinter import ttk
 import time
 import os
+#from Author_Split import open_author_split
 from Harvesting import open_harvesting
 from Cannon_Remake import open_cannon_remake
 from Make_Folder import open_make_folder
@@ -44,6 +45,9 @@ def open_control_panel():
     frame = LabelFrame(root, text = "Select a Program", bg = '#003B49', fg = "white", font = 'tungsten 14 bold')
 
     # Open program functions
+#    def open_author_split_program():
+#        open_author_split()
+
     def open_harvesting_program():
         open_harvesting()
 
