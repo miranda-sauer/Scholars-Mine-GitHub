@@ -351,7 +351,7 @@ def open_harvesting():
                      "publisher_place", "source_publication", "volnum", "issnum", "fpage", "lpage", "pubmedid",
                      "disciplines", "geolocate", "latitude", "longitude", "embargo_date", "date_uploaded",
                      "last_revision_date", "supplementary_documents_attached", "primary_document_attached",
-                     "from_abstract", "copyright", "author_split"]
+                     "from_abstract", "copyright", "author"]
 
         # Add Column Headers (before authors)
         new_col = 1

@@ -22,7 +22,7 @@ def open_reformat_harvesting():
     reformat_harvesting = Toplevel()
     reformat_harvesting.title("Reformat Harvesting Program")
     reformat_harvesting.configure(bg = '#003B49')
-    reformat_harvesting.iconbitmap('R:/storage/libarchive/b/1. Processing/8. Other Projects/Control Panel/CODE/S&T_Logo.ico')
+    reformat_harvesting.iconbitmap('R:/storage/libarchive/b/1. Processing/8. Other Projects/Scholars-Mine-GitHub/Control Panel/CODE/S&T_Logo.ico')
 
     # Center the window on the screen
     window_w = 400 # window width
@@ -144,23 +144,31 @@ def open_reformat_harvesting():
         # Fill author_split column
         def author_split_information(row):
 
-            for num in range(1, sheet.cell(row, index("total_author_count")).value + 1):
+            for num in range(1, int(sheet.cell(row, index("total_author_count")).value) + 1):
                 # name information
                 last_name = sheet.cell(row, index("author" + str(num) + "_lname")).value
                 first_name = sheet.cell(row, index("author" + str(num) + "_fname")).value
-                first_initial = first_name[0:1]
+                
+                if sheet.cell(row, index("author" + str(num) + "_mname")).value:
+                    middle_name = sheet.cell(row, index("author" + str(num) + "_mname")).value
+                    middle_initial = middle_name[0:1]
 
-                if num > 1:
-                    author_split = str(sheet.cell(row, index("author_split")).value) + " and " + str(last_name) + ", " + str(first_initial) + "."
+                    if num > 1:
+                        author_split = str(sheet.cell(row, specific_index("author", "_")).value) + " and " + str(last_name) + ", " + str(first_name) + " " + str(middle_initial) + "."
+                    else:
+                        author_split = str(last_name) + ", " + str(first_name) + " " + str(middle_initial) + "."
                 else:
-                    author_split = str(last_name) + ", " + str(first_initial) + "."
+                    if num > 1:
+                        author_split = str(sheet.cell(row, specific_index("author", "_")).value) + " and " + str(last_name) + ", " + str(first_name)
+                    else:
+                        author_split = str(last_name) + ", " + str(first_name)
 
                 try:
                     # author_split
-                    fill(index('author_split'), str(author_split))
+                    fill(specific_index("author", "_"), str(author_split))
                 except TypeError:
                     if row == 2:
-                        print("Couldn't find 'author_split' column.")
+                        print("Couldn't find 'author' column.")
 
 
         # Determine how many rows are in the sheet that is being read from

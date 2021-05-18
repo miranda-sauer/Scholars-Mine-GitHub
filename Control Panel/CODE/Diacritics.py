@@ -22,7 +22,7 @@ def open_diacritics():
     diacritics = Toplevel()
     diacritics.title("Diacritics Program")
     diacritics.configure(bg = '#003B49')
-    diacritics.iconbitmap('R:/storage/libarchive/b/1. Processing/8. Other Projects/Control Panel/CODE/S&T_Logo.ico')
+    diacritics.iconbitmap('R:/storage/libarchive/b/1. Processing/8. Other Projects/Scholars-Mine-GitHub/Control Panel/CODE/S&T_Logo.ico')
 
     # Center the window on the screen
     window_w = 400 # window width

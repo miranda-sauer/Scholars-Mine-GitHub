@@ -21,7 +21,7 @@ def open_open_all():
     open_all = Toplevel()
     open_all.title("Open All Program")
     open_all.configure()
-    open_all.iconbitmap('R:/storage/libarchive/b/1. Processing/8. Other Projects/Control Panel/CODE/S&T_Logo.ico')
+    open_all.iconbitmap('R:/storage/libarchive/b/1. Processing/8. Other Projects/Scholars-Mine-GitHub/Control Panel/CODE/S&T_Logo.ico')
 
     # Center the window on the screen
     window_w = 396 # window width

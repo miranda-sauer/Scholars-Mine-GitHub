@@ -16,7 +16,7 @@ def open_control_panel():
     root = Tk()
     root.title("Scholars' Mine Control Panel")
     root.configure(bg = '#003B49')
-    root.iconbitmap('R:/storage/libarchive/b/1. Processing/8. Other Projects/Control Panel/CODE/S&T_Logo.ico')
+    root.iconbitmap('R:/storage/libarchive/b/1. Processing/8. Other Projects/Scholars-Mine-GitHub/Control Panel/CODE/S&T_Logo.ico')
 
     # Center the window on the screen
     window_w = 618 # window width

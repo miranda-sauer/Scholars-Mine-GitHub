@@ -19,7 +19,7 @@ def open_make_folder():
     make_folder = Toplevel()
     make_folder.title("Make Folder Program")
     make_folder.configure(bg = '#003B49')
-    make_folder.iconbitmap('R:/storage/libarchive/b/1. Processing/8. Other Projects/Control Panel/CODE/S&T_Logo.ico')
+    make_folder.iconbitmap('R:/storage/libarchive/b/1. Processing/8. Other Projects/Scholars-Mine-GitHub/Control Panel/CODE/S&T_Logo.ico')
 
     # Center the window on the screen
     window_w = 400 # window width

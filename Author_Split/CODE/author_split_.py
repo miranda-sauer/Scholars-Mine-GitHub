@@ -9,13 +9,13 @@ rdsheet = None
 author_column = ''
 excelName = ''
 authority_control_lookup_path = 'R:/storage/libarchive/a/Student Processing/zzz_Program_Dependencies/Authority_Control_Lookups.xlsx'
-Authority_Lookup_Dict = pickle.load(open('Authority_Control_Dict_lowercase.pickle','rb'))
+Authority_Lookup_Dict = pickle.load(open("R:/storage/libarchive/a/zzz_Programs/Author_Split/CODE/Authority_Control_Dict_lowercase.pickle",'rb'))
 authority_control_lookup = None
 authorDict = {}
 rb = None
 
-special_char = pickle.load(open('special_char.pickle','rb'))
-extra_special_char = pickle.load(open('extra_special_char.pickle','rb'))
+special_char = pickle.load(open('R:/storage/libarchive/a/zzz_Programs/Author_Split/CODE/special_char.pickle','rb'))
+extra_special_char = pickle.load(open('R:/storage/libarchive/a/zzz_Programs/Author_Split/CODE/extra_special_char.pickle','rb'))
 
 
 

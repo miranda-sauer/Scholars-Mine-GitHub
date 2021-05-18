@@ -14,13 +14,13 @@ rdsheet = None
 author_column = ''
 excelName = ''
 
-special_char = pickle.load(open('special_char.pickle','rb'))
-extra_special_char = pickle.load(open('extra_special_char.pickle','rb'))
+special_char = pickle.load(open('R:/storage/libarchive/a/zzz_Programs/Author_Split/CODE/special_char.pickle','rb'))
+extra_special_char = pickle.load(open('R:/storage/libarchive/a/zzz_Programs/Author_Split/CODE/extra_special_char.pickle','rb'))
 
 
 os.chdir('..') # Everything should 
 
-authority_database = sqlite3.connect('../faculty.db') # Database is back one directory, hence '../faculty.db'
+authority_database = sqlite3.connect('R:/storage/libarchive/a/zzz_Programs/faculty.db') # Database is back one directory, hence '../faculty.db'
 authority_cursor = authority_database.cursor()
 
 authorDict = {}
