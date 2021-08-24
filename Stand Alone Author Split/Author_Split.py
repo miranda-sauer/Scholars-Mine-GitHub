@@ -13,6 +13,7 @@ _global = sys.modules[__name__] # Allows access to 'global' variables defined be
 from tkinter import *
 from tkinter import filedialog
 from tkinter import ttk
+from tkinter import messagebox
 import time
 import datetime
 
@@ -26,14 +27,14 @@ rdsheet = None
 author_column = ''
 excelName = ''
 
-authority_database = sqlite3.connect('R:/storage/libarchive/b/1. Processing/8. Other Projects/Scholars-Mine-GitHub/Control Panel/CODE/faculty.db')
+authority_database = sqlite3.connect('R:/storage/libarchive/b/1. Processing/8. Other Projects/Scholars-Mine-GitHub/Stand Alone Author Split/faculty.db')
 authority_cursor = authority_database.cursor()
 
 authorDict = {}
 rb = None
 
-special_char = pickle.load(open('R:/storage/libarchive/b/1. Processing/8. Other Projects/Scholars-Mine-GitHub/Control Panel/CODE/special_char.pickle','rb'))
-extra_special_char = pickle.load(open('R:/storage/libarchive/b/1. Processing/8. Other Projects/Scholars-Mine-GitHub/Control Panel/CODE/extra_special_char.pickle','rb'))
+special_char = pickle.load(open('R:/storage/libarchive/b/1. Processing/8. Other Projects/Scholars-Mine-GitHub/Stand Alone Author Split/special_char.pickle','rb'))
+extra_special_char = pickle.load(open('R:/storage/libarchive/b/1. Processing/8. Other Projects/Scholars-Mine-GitHub/Stand Alone Author Split/extra_special_char.pickle','rb'))
 
 
 
@@ -211,10 +212,10 @@ def dictPrint(dct):
 
 def open_author_split():
     # Create window
-    author_split = Toplevel()
+    author_split = Tk()
     author_split.title("Author Split Program")
     author_split.configure(bg = '#003B49')
-    author_split.iconbitmap('R:/storage/libarchive/b/1. Processing/8. Other Projects/Scholars-Mine-GitHub/Control Panel/CODE/S&T_Logo.ico')
+    author_split.iconbitmap('R:/storage/libarchive/b/1. Processing/8. Other Projects/Scholars-Mine-GitHub/Stand Alone Author Split/S&T_Logo.ico')
 
     # Center the window on the screen
     window_w = 400 # window width
@@ -241,7 +242,10 @@ def open_author_split():
     # Open Help Function
     def open_help():
         # Open word document
-        os.startfile("R:/storage/libarchive/b/1. Processing/8. Other Projects/Scholars-Mine-GitHub/Control Panel/Documentation/Author Split Help.docx")
+        try:
+            os.startfile("R:/storage/libarchive/b/1. Processing/8. Other Projects/Scholars-Mine-GitHub/Control Panel/Documentation/Author Split Help.docx")
+        except:
+            error_popup("Could not open help file.")
 
     # Create a button
     help_button = Button(author_split, text = "Help", command = lambda : open_help(), bg = '#78BE20', fg = '#003B49', font = 'tungsten 12 bold', borderwidth = 1, relief = "ridge")
@@ -254,6 +258,14 @@ def open_author_split():
     task.pack(padx = 20)
     help_button.pack(padx = (331, 10), pady = 0)
     exit_button.pack(padx = (242, 10), pady = (5, 0))
+
+    # Error Message Popup
+    def error_popup(error_message):
+        messagebox.showerror("Error", error_message)
+
+    # Warning Message Popup
+    def warning_popup(warning_message):
+        messagebox.showwarning("Warning", warning_message)
 
     # Update Progress Bar
     def update_progress(p, t):  
@@ -274,17 +286,21 @@ def open_author_split():
         update_progress(0, "Waiting for a file")
 
         # Open file
-        author_split.filename = filedialog.askopenfilename(initialdir = "R:/storage/libarchive/b/1. Processing/8. Other Projects/Harvesting/Excel Files", title = "Select Input", filetypes = (("Excel Workbook", "*.xlsx"),))
+        author_split.filename = filedialog.askopenfilename(initialdir = "R:/storage/libarchive/b/1. Processing/8. Other Projects/Excel Files", title = "Select Input", filetypes = (("Excel Workbook", "*.xlsx"),))
+        if author_split.filename == "":
+            warning_popup("No folder selected.")
+            file_label.config(text = "Folder: N/A")
+            del author_split.filename
+        else:
+            #Get file name
+            name = author_split.filename
+            for i in range(len(name)):
+                if "/" in name[-(i)]:
+                    name = "File: " + name[-(i-1):]
+                    break
 
-        #Get file name
-        name = author_split.filename
-        for i in range(len(name)):
-            if "/" in name[-(i)]:
-                name = "File: " + name[-(i-1):]
-                break
-
-        #Update Folder Name Label
-        file_label.config(text = name)
+            #Update Folder Name Label
+            file_label.config(text = name)
 
     # Main Function
     def main():
@@ -388,7 +404,7 @@ def open_author_split():
                 dictPrint(_global.authorDict[author])
             print('\n\n\n')
             _global.rb = ensure_encryption(_global.rb)
-            _global.rb.save('{}_AuthorSplit.xlsx'.format((excelName)[:len(excelName) - 5]))
+            _global.rb.save('{}_Complete.xlsx'.format((excelName)[:len(excelName) - 25]))
         else:
             print('ERROR IN {}'.format(excelName))
             for error in errors:
@@ -399,7 +415,12 @@ def open_author_split():
     # Start Button Function
     def start():
         # Run program and update progress bar
-        main()
+        try:
+            main()
+        except AttributeError:
+            error_popup("No folder selected. Browse to select a folder.")
+        except:
+            error_popup("There was an unknown error, the file could not be processed.")
     
     # Create a button
     browse_button = Button(frame, text = "Browse", command = lambda : browse(), bg = '#78BE20', fg = '#003B49', font = 'tungsten 12 bold', borderwidth = 1, relief = "ridge")
@@ -408,3 +429,6 @@ def open_author_split():
     # Place in frame
     browse_button.grid(row = 0, column = 0, padx = (15, 0), pady = 15)
     start_button.grid(row = 0, column = 1, padx = 15, pady = 15)
+
+    # Keeps window open until closed
+    author_split.mainloop()

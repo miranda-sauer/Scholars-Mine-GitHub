@@ -12,6 +12,7 @@ from openpyxl.styles.colors import Color
 from tkinter import *
 from tkinter import filedialog
 from tkinter import ttk
+from tkinter import messagebox
 import os
 
 
@@ -273,7 +274,11 @@ def open_harvesting():
     # Open Help Function
     def open_help():
         # Open word document
-        os.startfile("**/*/Control Panel/Documentation/Harvesting Help.docx")
+        try:
+            os.startfile("**/*/Control Panel/Documentation/Harvesting Help.docx")
+        except:
+            error_popup("Could not open help file.")
+
 
     # Create a button
     help_button = Button(harvesting, text = "Help", command = lambda : open_help(), bg = '#78BE20', fg = '#003B49', font = 'tungsten 12 bold', borderwidth = 1, relief = "ridge")
@@ -287,12 +292,13 @@ def open_harvesting():
     help_button.pack(padx = (331, 10), pady = 0)
     exit_button.pack(padx = (250, 10), pady = (5, 0))
 
-    # Create Error Log
-    def update_error_log(file_name, error_message):
-        current_time = datetime.datetime.now()
-        path = "R:/storage/libarchive/b/1. Processing/8. Other Projects/Scholars-Mine-GitHub/Control Panel/Documentation/Error Log.txt"
-        with open(path, "a+") as el: #Open error log to append
-            el.write("\n" + str(current_time) + "\tOpen All : " + str(file_name) + " : " + str(error_message)) #Append Error Log
+    # Error Message Popup
+    def error_popup(error_message):
+        messagebox.showerror("Error", error_message)
+
+    # Warning Message Popup
+    def warning_popup(warning_message):
+        messagebox.showwarning("Warning", warning_message)
 
     # Update Progress Bar
     def update_progress(p, t):
@@ -313,17 +319,21 @@ def open_harvesting():
         update_progress(0, "Waiting for a file")
 
         # Open file
-        harvesting.filename = filedialog.askopenfilename(initialdir = "R:/storage/libarchive/b/1. Processing/8. Other Projects/Harvesting/Excel Files", title = "Select Input", filetypes = (("Excel Workbook", "*.xlsx"),))
+        harvesting.filename = filedialog.askopenfilename(initialdir = "R:/storage/libarchive/b/1. Processing/8. Other Projects/Excel Files", title = "Select Input", filetypes = (("Excel Workbook", "*.xlsx"),))
+        if harvesting.filename == "":
+            warning_popup("No file selected.")
+            file_label.config(text = "File: N/A")
+            del harvesting.filename
+        else:
+            # Get file name
+            name = harvesting.filename
+            for i in range(len(name)):
+                if "/" in name[-(i)]:
+                    name = "File: " + name[-(i-1):]
+                    break
 
-        #Get file name
-        name = harvesting.filename
-        for i in range(len(name)):
-            if "/" in name[-(i)]:
-                name = "File: " + name[-(i-1):]
-                break
-
-        #Update File Name Label
-        file_label.config(text = name)
+            # Update Folder Name Label
+            file_label.config(text = name)
 
     # Main Function
     def main(file_name):
@@ -439,7 +449,7 @@ def open_harvesting():
                 new_sheet.cell(row, new_index('open_access')).fill = yellow
             except TypeError:
                 if row == 2:
-                    print("Couldn't find 'open_access' column.")
+                    warning_popup("Couldn't find 'open_access' column.")
 
             # url
             try:
@@ -448,28 +458,28 @@ def open_harvesting():
                 new_sheet.cell(row, new_index('url')).fill = yellow
             except TypeError:
                 if row == 2:
-                    print("Couldn't find 'url' column.")
+                    warning_popup("Couldn't find 'url' column.")
 
             # title
             try:
                 copy(new_index('title'), old_index('title'))
             except TypeError:
                 if row == 2:
-                    print("Couldn't find 'title' column.")
+                    warning_popup("Couldn't find 'title' column.")
 
             # doi
             try:
                 copy(new_index('doi'), old_index('doi'))
             except TypeError:
                 if row == 2:
-                    print("Couldn't find 'doi' column.")
+                    warning_popup("Couldn't find 'doi' column.")
 
             # source_fulltext_url
             try:
                 copy(new_index('source_fulltext_url'), old_index('source_fulltext_url'))
             except TypeError:
                 if row == 2:
-                    print("Couldn't find 'source_fulltext_url' column.")
+                    warning_popup("Couldn't find 'source_fulltext_url' column.")
 
             # author_classification
             fill(new_index('author_classification'), 'faculty')
@@ -493,7 +503,7 @@ def open_harvesting():
                 copy(new_index('abstract'), old_index('abstract'))
             except TypeError:
                 if row == 2:
-                    print("Couldn't find 'abstract' column.")
+                    warning_popup("Couldn't find 'abstract' column.")
 
             # Funding Number & Funding Sponsor
             f_num = old_sheet.cell(row, old_index('Funding Number')).value # Changing to grant?
@@ -513,7 +523,7 @@ def open_harvesting():
                 copy(new_index('keywords'), old_index('keywords'))
             except TypeError:
                 if row == 2:
-                    print("Couldn't find 'keywords' column.")
+                    warning_popup("Couldn't find 'keywords' column.")
 
             # isbn format function
             def format_isbn(val_in):
@@ -584,7 +594,7 @@ def open_harvesting():
                 copy(new_index('document_type'), old_index('document_type'))
             except TypeError:
                 if row == 2:
-                    print("Couldn't find 'document_type' column.")
+                    warning_popup("Couldn't find 'document_type' column.")
 
             if 'conference' in str(new_sheet.cell(row, new_index('document_type')).value):
                 fill(new_index('document_type'), 'article_conference_proceedings')
@@ -603,7 +613,7 @@ def open_harvesting():
                 copy(new_index('language2'), old_index('language2'))
             except TypeError:
                 if row == 2:
-                    print("Couldn't find 'language2' column.")
+                    warning_popup("Couldn't find 'language2' column.")
 
             # rights
             fill(new_index('rights'), '© 2021 , All rights reserved.')
@@ -613,7 +623,7 @@ def open_harvesting():
                 copy(new_index('publication_date'), specific_old_index('publication_date', 'custom'))
             except TypeError:
                 if row == 2:
-                    print("Couldn't find 'publication_date' column.")
+                    warning_popup("Couldn't find 'publication_date' column.")
 
             try:
                 if new_sheet.cell(row, specific_new_index('publication_date', 'custom')).value:
@@ -672,47 +682,47 @@ def open_harvesting():
                     copy(new_index('source_publication'), old_index('source_publication'))
                 except TypeError:
                     if row == 2:
-                        print("Couldn't find 'source_publication' column.")
+                        warning_popup("Couldn't find 'source_publication' column.")
 
             # volnum
             try:
                 copy(new_index('volnum'), old_index('volnum'))
             except TypeError:
                 if row == 2:
-                    print("Couldn't find 'volnum' column.")
+                    warning_popup("Couldn't find 'volnum' column.")
 
             # issnum
             try:
                 copy(new_index('issnum'), old_index('issnum'))
             except TypeError:
                 if row == 2:
-                    print("Couldn't find 'issnum' column.")
+                    warning_popup("Couldn't find 'issnum' column.")
 
             # fpage
             try:
                 copy(new_index('fpage'), old_index('fpage'))
             except TypeError:
                 if row == 2:
-                    print("Couldn't find 'fpage' column.")
+                    warning_popup("Couldn't find 'fpage' column.")
 
             # lpage
             try:
                 copy(new_index('lpage'), old_index('lpage'))
             except TypeError:
                 if row == 2:
-                    print("Couldn't find 'lpage' column.")
+                    warning_popup("Couldn't find 'lpage' column.")
 
             # pubmedid
             try:
                 copy(new_index('pubmedid'), old_index('pubmedid'))
             except TypeError:
                 if row == 2:
-                    print("Couldn't find 'pubmedid' column.")
+                    warning_popup("Couldn't find 'pubmedid' column.")
                 try:
                     copy(new_index('pubmedid'), old_index('PubMed ID'))
                 except TypeError:
                     if row == 2:
-                        print("Couldn't find 'PubMed ID' column either.")
+                        warning_popup("Couldn't find 'PubMed ID' column either.")
 
             # primary_document_attached
             fill(new_index('primary_document_attached'), 'no')
@@ -723,7 +733,7 @@ def open_harvesting():
                 new_sheet.cell(row, new_index('from_abstract')).fill = yellow
             except TypeError:
                 if row == 2:
-                    print("Couldn't find 'from_abstract' column.")
+                    warning_popup("Couldn't find 'from_abstract' column.")
 
             # copyright
             try:
@@ -731,7 +741,7 @@ def open_harvesting():
                 new_sheet.cell(row, new_index('copyright')).fill = yellow
             except TypeError:
                 if row == 2:
-                    print("Couldn't find 'copyright' column.")
+                    warning_popup("Couldn't find 'copyright' column.")
 
         #identify s&t authors
 
@@ -853,18 +863,60 @@ def open_harvesting():
             if max_length < 100:
                 new_sheet.column_dimensions[get_column_letter(new_col)].width = max_length * 1.2
 
-        # Save excel
+        # Prepare for Author_Split
         update_progress(8, "Harvesting files...") # Saving
 
-        new_path = str(file_name)[:len(file_name) - 5] + '_Harvested.xlsx'
+        def author_split_information(row):
+            upper = new_sheet.cell(row, new_index("total_author_count")).value
+
+            for num in range(1, upper + 1):
+
+                # gather name information
+                last_name = new_sheet.cell(row, new_index("author" + str(num) + "_lname")).value
+                first_name = new_sheet.cell(row, new_index("author" + str(num) + "_fname")).value
+                
+
+                if new_sheet.cell(row, new_index("author" + str(num) + "_mname")).value: #w/ middle name
+                    middle_name = new_sheet.cell(row, new_index("author" + str(num) + "_mname")).value
+                    middle_initial = middle_name[0:1]
+
+                    if num > 1:
+                        author_split = str(new_sheet.cell(row, specific_new_index("author", "_")).value) + " and " + str(last_name) + ", " + str(first_name) + " " + str(middle_initial) + "."
+                    else:
+                        author_split = str(last_name) + ", " + str(first_name) + " " + str(middle_initial) + "."
+                else: #w/o middle name
+                    if num > 1:
+                        author_split = str(new_sheet.cell(row, specific_new_index("author", "_")).value) + " and " + str(last_name) + ", " + str(first_name)
+                    else:
+                        author_split = str(last_name) + ", " + str(first_name)
+
+                try:
+                    # author_split
+                    fill(specific_new_index("author", "_"), str(author_split))
+                except TypeError:
+                    if row == 2:
+                        warning_popup("Couldn't find 'author' column.")
+
+        for row in range(2, new_max_row + 1):
+            author_split_information(row)
+
+        # Save excel
+        update_progress(9, "Harvesting files...") # Saving
+
+        new_path = str(file_name)[:len(file_name) - 5] + '_ReadyForAuthorSplit.xlsx'
         new_book.save(new_path)
 
-        update_progress(9, "Excel Created")
+        update_progress(10, "Excel Created")
 
     # Start Button Function
     def start():
         # Run program and update progress bar
-        main(harvesting.filename)
+        try:
+            main(harvesting.filename)
+        except AttributeError:
+            error_popup("No file selected. Browse to select a file.")
+        except:
+            error_popup("There was an unknown error, the file could not be processed.")
 
     # Create a button
     browse_button = Button(frame, text = "Browse", command = lambda : browse(), bg = '#78BE20', fg = '#003B49', font = 'tungsten 12 bold', borderwidth = 1, relief = "ridge")

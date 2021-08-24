@@ -4,6 +4,7 @@
 from tkinter import *
 from tkinter import filedialog
 from tkinter import ttk
+from tkinter import messagebox
 import time
 import os
 import shutil
@@ -47,7 +48,10 @@ def open_make_folder():
     # Open Help Function
     def open_help():
         # Open word document
-        os.startfile("R:/storage/libarchive/b/1. Processing/8. Other Projects/Control Panel/Documentation/Make Folder Help.docx")
+        try:
+            os.startfile("R:/storage/libarchive/b/1. Processing/8. Other Projects/Control Panel/Documentation/Make Folder Help.docx")
+        except:
+            error_popup("Could not open help file.")
 
     # Create a button
     help_button = Button(make_folder, text = "Help", command = lambda : open_help(), bg = '#78BE20', fg = '#003B49', font = 'tungsten 12 bold', borderwidth = 1, relief = "ridge")
@@ -60,6 +64,14 @@ def open_make_folder():
     task.pack(padx = 20)
     help_button.pack(padx = (331, 10), pady = 0)
     exit_button.pack(padx = (240, 10), pady = (5, 0))
+
+    # Error Message Popup
+    def error_popup(error_message):
+        messagebox.showerror("Error", error_message)
+
+    # Warning Message Popup
+    def warning_popup(warning_message):
+        messagebox.showwarning("Warning", warning_message)
 
     # Update Progress Bar
     def update_progress(p, t):  
@@ -81,16 +93,20 @@ def open_make_folder():
 
         # Open file
         make_folder.filename = filedialog.askdirectory(initialdir = "R:/storage/libarchive/a/Student Processing", title = "Select Input",)
+        if make_folder.filename == "":
+            warning_popup("No folder selected.")
+            file_label.config(text = "Folder: N/A")
+            del make_folder.filename
+        else:
+            #Get file name
+            name = make_folder.filename
+            for i in range(len(name)):
+                if "/" in name[-(i)]:
+                    name = "Folder: " + name[-(i-1):]
+                    break
 
-        #Get file name
-        name = make_folder.filename
-        for i in range(len(name)):
-            if "/" in name[-(i)]:
-                name = "Folder: " + name[-(i-1):]
-                break
-
-        #Update Folder Name Label
-        file_label.config(text = name)
+            #Update Folder Name Label
+            file_label.config(text = name)
 
     # Main Function
     def main(file_name):
@@ -113,7 +129,12 @@ def open_make_folder():
     # Start Button Function
     def start():
         # Run program and update progress bar
-        main(make_folder.filename)
+        try:
+            main(make_folder.filename)
+        except AttributeError:
+            error_popup("No folder selected. Browse to select a folder.")
+        except:
+            error_popup("There was an unknown error, the folder could not be created.")
     
     # Create a button
     browse_button = Button(frame, text = "Browse", command = lambda : browse(), bg = '#78BE20', fg = '#003B49', font = 'tungsten 12 bold', borderwidth = 1, relief = "ridge")

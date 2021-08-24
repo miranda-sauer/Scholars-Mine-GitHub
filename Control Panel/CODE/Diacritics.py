@@ -4,6 +4,7 @@
 from tkinter import *
 from tkinter import filedialog
 from tkinter import ttk
+from tkinter import messagebox
 import time
 import os
 import shutil
@@ -64,15 +65,13 @@ def open_diacritics():
     help_button.pack(padx = (331, 10), pady = 0)
     exit_button.pack(padx = (262, 10), pady = (5, 0))
 
-    # Create Error Log
-    name = "No File Chosen"
+    # Error Message Popup
+    def error_popup(error_message):
+        messagebox.showerror("Error", error_message)
 
-    def update_error_log(file_name, error_message):
-        current_time = datetime.datetime.now()
-        path = "R:/storage/libarchive/b/1. Processing/8. Other Projects/Scholars-Mine-GitHub/Control Panel/Documentation/Error Log.txt"
-        with open(path, "a+") as el: #Open error log to append
-            el.write("\n" + str(current_time) + "\tOpen All : " + str(file_name) + " : " + str(error_message)) #Append Error Log
-        print(error_message)
+    # Warning Message Popup
+    def warning_popup(warning_message):
+        messagebox.showwarning("Warning", warning_message)
 
     # Update Progress Bar
     def update_progress(p, t):  
@@ -94,16 +93,20 @@ def open_diacritics():
 
         # Open file
         diacritics.filename = filedialog.askopenfilename(initialdir = "R:/storage/libarchive", title = "Select Input", filetypes = (("Excel Workbook", "*.xlsx"),))
+        if diacritics.filename == "":
+            warning_popup("No folder selected.")
+            file_label.config(text = "Folder: N/A")
+            del diacritics.filename
+        else:
+            #Get file name
+            name = diacritics.filename
+            for i in range(len(name)):
+                if "/" in name[-(i)]:
+                    name = "Folder: " + name[-(i-1):]
+                    break
 
-        #Get file name
-        name = diacritics.filename
-        for i in range(len(name)):
-            if "/" in name[-(i)]:
-                name = "Folder: " + name[-(i-1):]
-                break
-
-        #Update Folder Name Label
-        file_label.config(text = name)
+            #Update Folder Name Label
+            file_label.config(text = name)
 
     # Main Function
     def main(file_name):
@@ -115,7 +118,7 @@ def open_diacritics():
             book = load_workbook(path)  #read file
             sheet = book.active         #read sheet
         except:
-            update_error_log(name, "Couldn't Load Excel")
+            error_popup("Couldn't Load Excel")
 
         # Determine max row and column
         try:
@@ -124,7 +127,7 @@ def open_diacritics():
             print("Rows: " + str(max_row))
             print("Columns: " + str(max_col))
         except:
-            update_error_log(name, "Couldn't Determine Max Row/Col")
+            error_popup("Couldn't Determine Max Row/Col")
 
         # Search Excel
         try:
@@ -133,7 +136,7 @@ def open_diacritics():
                     if sheet.cell(row, col).value == "kb":
                         sheet.cell(row, col).value = "fixed"
         except:
-            update_error_log(name, "Couldn't Search File")
+            error_popup("Couldn't Search File")
         
         update_progress(2, "Saving file...") # Saving
 
@@ -142,7 +145,7 @@ def open_diacritics():
             path = str(file_name)[:len(file_name) - 5] + '_Complete.xlsx'
             book.save(path)
         except:
-            update_error_log(name, "Couldn't Save File")
+            error_popup("Couldn't Save File")
 
         update_progress(3, "Excel Created")
     
@@ -151,8 +154,10 @@ def open_diacritics():
         # Run program and update progress bar
         try:
             main(diacritics.filename)
+        except AttributeError:
+            error_popup("No file selected. Browse to select a file.")
         except:
-            update_error_log(name, "Couldn't Start Program")
+            error_popup("There was an unknown error, the file could not be processed.")
     
     # Create a button
     browse_button = Button(frame, text = "Browse", command = lambda : browse(), bg = '#78BE20', fg = '#003B49', font = 'tungsten 12 bold', borderwidth = 1, relief = "ridge")
