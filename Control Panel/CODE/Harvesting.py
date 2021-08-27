@@ -277,7 +277,7 @@ def open_harvesting():
         try:
             os.startfile("**/*/Control Panel/Documentation/Harvesting Help.docx")
         except:
-            error_popup("Could not open help file.")
+            error_popup("Could not find a help file to open.")
 
 
     # Create a button
@@ -349,19 +349,16 @@ def open_harvesting():
         new_sheet = new_book.active         #create worksheet
 
         # Column Headers
-        headers =   ["open_access", "url", "title", "title_alternative", "doi", "fulltext_url", "source_fulltext_url",
-                     "additional_text_uri", "author_classification", "total_author_count",
-                     "faculty_author_count", "institution_name", "editor_list", "authorized_name", "illustrators",
-                     "abstract", "related_content", "custom_citation", "meeting_name", "department1", "department2",
-                     "department3", "department4", "centers_labs", "centers_labs2", "centers_labs3", "centers_labs4",
-                     "sponsors", "comments", "keywords", "subject_area", "geographic_coverage", "time_period", "isbn",
-                     "issn", "oclc_electronic", "oclc_print", "patent_application", "patent_number", "technical_report",
-                     "document_type", "document_version", "file_type", "language_iso", "language2", "table_of_contents",
-                     "rights", "distribution_license", "publication_date", "custom_publication_date", "publisher",
-                     "publisher_place", "source_publication", "volnum", "issnum", "fpage", "lpage", "pubmedid",
-                     "disciplines", "geolocate", "latitude", "longitude", "embargo_date", "date_uploaded",
-                     "last_revision_date", "supplementary_documents_attached", "primary_document_attached",
-                     "from_abstract", "copyright", "author"]
+        headers =   ["open_access", "url", "title", "title_alternative", "doi", "source_fulltext_url",
+                     "additional_text_uri", "author_classification", "total_author_count", "faculty_author_count", 
+                     "institution_name", "authorized_name", "abstract", "meeting_name", "department1", "department2", 
+                     "department3", "department4", "centers_labs", "centers_labs2", "centers_labs3", "centers_labs4", 
+                     "pub_status", "comments", "keywords", "geographic_coverage", "time_period", "isbn", "issn", 
+                     "document_type", "document_version", "file_type", "language_iso", "language2", "rights", 
+                     "distribution_license", "publication_date", "custom_publication_date", "publisher",
+                     "publisher_place", "source_publication", "volnum", "issnum", "articlenum", "fpage", 
+                     "lpage", "pubmedid", "disciplines", "embargo_date", "date_uploaded", 
+                     "primary_document_attached", "copyright", "author"]
 
         # Add Column Headers (before authors)
         new_col = 1
@@ -372,6 +369,10 @@ def open_harvesting():
         # Determine how many columns are in the sheet that is being read from
         old_max_col = len([c for c in old_sheet.iter_cols(min_row=1, max_row=1, values_only=True) if c[0] is not None])
 
+        # Determine how many rows are in the sheet that is being read from
+        old_max_row = len([c for c in old_sheet.iter_rows(min_col=1, max_col=1, values_only=True) if c[0] is not None])
+        new_max_row = old_max_row
+
         # Starting author count
         last_cell = str(old_sheet.cell(1, old_max_col).value)[6:]
 
@@ -381,6 +382,28 @@ def open_harvesting():
                 author_count = int(last_cell[:index])
                 break
             index += 1
+
+        #Code for getting rid of empty author columns
+        #temp_start = old_max_col + 1
+        #is_used = False
+
+        #while(not(is_used)):
+            #update variables
+        #    temp_stop = temp_start
+        #    temp_start = temp_stop - 7
+
+            #look for content
+        #    for row in range(2, old_max_row + 1):
+        #        for temp_col in range(temp_start, temp_stop): #searches through column headers
+        #            if old_sheet.cell(row, temp_col).value:
+        #                is_used = True
+        #                print("Row: " + str(row) + " Col: " + str(temp_col) + " Cell value: " + str(old_sheet.cell(row, temp_col).value))
+            
+        #    print("Author " + str(author_count) + " " + str(is_used))
+        #    if is_used == False:
+        #        author_count -= 1
+
+        print("Author Count: " + str(author_count))
 
         # Adds the 7 headers for an author
         def add_author_headers(new_col, num): #takes in starting column and author number
@@ -394,9 +417,11 @@ def open_harvesting():
             new_sheet.cell(1,  new_col+6).value = f'author{num}_is_corporate'
 
         # Add authors
+        #print("Author Count: " + str(author_count))
         for num in range(1, author_count + 1):      #creates column headers for author count
             add_author_headers(new_col, num)        #add column headers for another author
             new_col += 7                            #update the current empty column header
+        #    print("Author " + str(num) + " added.")
 
         # Determine how many columns are in the sheet that is being written to
         new_max_col = len([c for c in new_sheet.iter_cols(min_row=1, max_row=1, values_only=True) if c[0] is not None])
@@ -407,25 +432,13 @@ def open_harvesting():
         def new_index(new_header):
             for new_col in range(1, new_max_col + 1):
                 new_col_head = new_sheet.cell(1, new_col).value
-                if new_header in new_col_head:
-                    return new_col
-
-        def specific_new_index(new_header, do_not_include):
-            for new_col in range(1, new_max_col + 1):
-                new_col_head = new_sheet.cell(1, new_col).value
-                if new_header in new_col_head and do_not_include not in new_col_head:
+                if new_header == new_col_head:
                     return new_col
 
         def old_index(old_header):
             for old_col in range(1, old_max_col + 1):
                 old_col_head = old_sheet.cell(1, old_col).value
-                if old_header in old_col_head:
-                    return old_col
-
-        def specific_old_index(old_header, do_not_include):
-            for old_col in range(1, old_max_col + 1):
-                old_col_head = old_sheet.cell(1, old_col).value
-                if old_header in old_col_head and do_not_include not in old_col_head:
+                if old_header == old_col_head:
                     return old_col
 
         # Copy Information
@@ -440,51 +453,68 @@ def open_harvesting():
         def fill(new_col, fill_text):
             new_sheet.cell(row, new_col).value = fill_text
 
-        # Inputs information for a row
+        # Add Highlight to Column Headers
+        new_sheet.cell(1, new_index('open_access')).fill = yellow
+        new_sheet.cell(1, new_index('url')).fill = yellow
+        new_sheet.cell(1, new_index('copyright')).fill = yellow
+
+        # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * #
+        #          FILLS ROW INFORMATION (in order of reformatted excel)            #
+        # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * #
         def row_information(row):
             # open_access
             try:
-                copy(new_index('open_access'), old_index('Open Access'))
-                # make column yellow
-                new_sheet.cell(row, new_index('open_access')).fill = yellow
+                if old_sheet.cell(row, old_index('Open Access')).value == "OA":
+                    #Finds which specific OA it is
+                    if old_sheet.cell(row, old_index('Gold OA')).value == "OA":
+                        copy(new_index('open_access'), old_index('Gold OA'))
+                    elif old_sheet.cell(row, old_index('Hybrid Gold OA')).value != "-":
+                        copy(new_index('open_access'), old_index('Hybrid Gold OA'))
+                    elif old_sheet.cell(row, old_index('Bronze OA')).value != "-":
+                        copy(new_index('open_access'), old_index('Bronze OA'))
+                    elif old_sheet.cell(row, old_index('Green Final OA')).value != "-":
+                        copy(new_index('open_access'), old_index('Green Final OA'))
+                    elif old_sheet.cell(row, old_index('Green Accepted OA')).value != "-":
+                        copy(new_index('open_access'), old_index('Green Accepted OA')) 
+                else:
+                    #default OA
+                    copy(new_index('open_access'), old_index('Open Access'))
             except TypeError:
                 if row == 2:
-                    warning_popup("Couldn't find 'open_access' column.")
+                    warning_popup("Couldn't transfer 'open_access' column. The column may not exist.")
 
             # url
             try:
                 copy(new_index('url'), old_index('source_fulltext_url'))
-                # make column yellow
-                new_sheet.cell(row, new_index('url')).fill = yellow
             except TypeError:
                 if row == 2:
-                    warning_popup("Couldn't find 'url' column.")
+                    warning_popup("Couldn't transfer 'url' column. The column may not exist.")
 
             # title
             try:
                 copy(new_index('title'), old_index('title'))
             except TypeError:
                 if row == 2:
-                    warning_popup("Couldn't find 'title' column.")
+                    warning_popup("Couldn't transfer 'title' column. The column may not exist.")
 
             # doi
             try:
                 copy(new_index('doi'), old_index('doi'))
             except TypeError:
                 if row == 2:
-                    warning_popup("Couldn't find 'doi' column.")
+                    warning_popup("Couldn't transfer 'doi' column. The column may not exist.")
 
             # source_fulltext_url
             try:
                 copy(new_index('source_fulltext_url'), old_index('source_fulltext_url'))
             except TypeError:
                 if row == 2:
-                    warning_popup("Couldn't find 'source_fulltext_url' column.")
+                    warning_popup("Couldn't transfer 'source_fulltext_url' column. The column may not exist.")
 
             # author_classification
             fill(new_index('author_classification'), 'faculty')
 
-            # author_count
+            # total_author_count
             a_count = 0
 
             for c in range(old_index('author1_fname'), old_max_col + 1, 7): #searches through column headers
@@ -503,27 +533,31 @@ def open_harvesting():
                 copy(new_index('abstract'), old_index('abstract'))
             except TypeError:
                 if row == 2:
-                    warning_popup("Couldn't find 'abstract' column.")
+                    warning_popup("Couldn't transfer 'abstract' column. The column may not exist.")
 
             # Funding Number & Funding Sponsor
-            f_num = old_sheet.cell(row, old_index('Funding Number')).value # Changing to grant?
-            f_spon = old_sheet.cell(row, old_index('Funding Sponsor')).value # Changing to fundref?
-            output = ''
+            try:
+                f_num = old_sheet.cell(row, old_index('Funding Number')).value # Changing to grant?
+                f_spon = old_sheet.cell(row, old_index('Funding Sponsor')).value # Changing to fundref?
+                output = ''
 
-            if f_spon:
-                if 'undefined' not in str(f_num):
-                    output = str(f_spon) + ', Grant ' + str(f_num)
-                else:
-                    output = str(f_spon)
+                if f_spon != None:
+                    if 'undefined' not in str(f_num):
+                        output = str(f_spon) + ', Grant ' + str(f_num)
+                    else:
+                        output = str(f_spon)
 
-            fill(new_index('comments'), output)
+                fill(new_index('comments'), output)
+            except:
+                if row == 2:
+                    warning_popup("Couldn't transfer 'Funding Number' and 'Funding Sponsor' columns. The columns may not exist.")
 
             # keywords
             try:
                 copy(new_index('keywords'), old_index('keywords'))
             except TypeError:
                 if row == 2:
-                    warning_popup("Couldn't find 'keywords' column.")
+                    warning_popup("Couldn't transfer 'keywords' column. The column may not exist.")
 
             # isbn format function
             def format_isbn(val_in):
@@ -568,8 +602,8 @@ def open_harvesting():
                 val_out = upper + "-" + lower                       #format output ####-####
                 e_ISSN = True
 
-            if old_sheet.cell(row, specific_old_index('issn', 'issnum')).value:
-                val_in2 = old_sheet.cell(row, specific_old_index('issn', 'issnum')).value
+            if old_sheet.cell(row, old_index('issn')).value:
+                val_in2 = old_sheet.cell(row, old_index('issn')).value
                 string2 = str(val_in2).zfill(8)                     #add missing leading 0s
                 upper2 = string2[:4]                                #get first 4 numbers
                 lower2 = string2[4:]                                #get last 4 numbers
@@ -587,14 +621,14 @@ def open_harvesting():
                 if issn:
                     output = val_out2                               #outputs 2nd issn
 
-            fill(specific_new_index('issn', 'issnum'), output)      #output to cell
+            fill(new_index('issn'), output)      #output to cell
 
             # document_type
             try:
                 copy(new_index('document_type'), old_index('document_type'))
             except TypeError:
                 if row == 2:
-                    warning_popup("Couldn't find 'document_type' column.")
+                    warning_popup("Couldn't transfer 'document_type' column. The column may not exist.")
 
             if 'conference' in str(new_sheet.cell(row, new_index('document_type')).value):
                 fill(new_index('document_type'), 'article_conference_proceedings')
@@ -613,21 +647,21 @@ def open_harvesting():
                 copy(new_index('language2'), old_index('language2'))
             except TypeError:
                 if row == 2:
-                    warning_popup("Couldn't find 'language2' column.")
+                    warning_popup("Couldn't transfer 'language2' column. The column may not exist.")
 
             # rights
             fill(new_index('rights'), '© 2021 , All rights reserved.')
 
             # publication_date
             try:
-                copy(new_index('publication_date'), specific_old_index('publication_date', 'custom'))
+                copy(new_index('publication_date'), old_index('publication_date'))
             except TypeError:
                 if row == 2:
-                    warning_popup("Couldn't find 'publication_date' column.")
+                    warning_popup("Couldn't transfer 'publication_date' column. The column may not exist.")
 
             try:
-                if new_sheet.cell(row, specific_new_index('publication_date', 'custom')).value:
-                    date = str(new_sheet.cell(row, specific_new_index('publication_date', 'custom')).value)
+                if new_sheet.cell(row, new_index('publication_date')).value:
+                    date = str(new_sheet.cell(row, new_index('publication_date')).value)
                     if len(date) > 10:
                         date = date[:len(date) - 9] #gets rid of time in the format
                         fill(new_index('publication_date'), date)
@@ -636,8 +670,8 @@ def open_harvesting():
 
             # custom_publication_date
             try:
-                if new_sheet.cell(row, specific_new_index('publication_date', 'custom')).value:
-                    date = str(new_sheet.cell(row, specific_new_index('publication_date', 'custom')).value)
+                if new_sheet.cell(row, new_index('publication_date')).value:
+                    date = str(new_sheet.cell(row, new_index('publication_date')).value)
                     date = date[:10] #gets rid of time in the format
 
                     #WORKS WHEN FORMAT IS "2020-02-01 00:00:00"
@@ -658,9 +692,6 @@ def open_harvesting():
             except:
                 print ("Unusual formatting in 'publication_date' column")
 
-
-        #line 28 and 19 are meetings (proceedings)
-        #text file with open access to check
             # source_publication
             filled = False
 
@@ -682,68 +713,57 @@ def open_harvesting():
                     copy(new_index('source_publication'), old_index('source_publication'))
                 except TypeError:
                     if row == 2:
-                        warning_popup("Couldn't find 'source_publication' column.")
+                        warning_popup("Couldn't transfer 'source_publication' column. The column may not exist.")
 
             # volnum
             try:
                 copy(new_index('volnum'), old_index('volnum'))
             except TypeError:
                 if row == 2:
-                    warning_popup("Couldn't find 'volnum' column.")
+                    warning_popup("Couldn't transfer 'volnum' column. The column may not exist.")
 
             # issnum
             try:
                 copy(new_index('issnum'), old_index('issnum'))
             except TypeError:
                 if row == 2:
-                    warning_popup("Couldn't find 'issnum' column.")
+                    warning_popup("Couldn't transfer 'issnum' column. The column may not exist.")
+
+            # articlenum
+            try:
+                copy(new_index('articlenum'), old_index('articlenum'))
+            except TypeError:
+                if row == 2:
+                    warning_popup("Couldn't transfer 'articlenum' column. The column may not exist.")
 
             # fpage
             try:
                 copy(new_index('fpage'), old_index('fpage'))
             except TypeError:
                 if row == 2:
-                    warning_popup("Couldn't find 'fpage' column.")
+                    warning_popup("Couldn't transfer 'fpage' column. The column may not exist.")
 
             # lpage
             try:
                 copy(new_index('lpage'), old_index('lpage'))
             except TypeError:
                 if row == 2:
-                    warning_popup("Couldn't find 'lpage' column.")
+                    warning_popup("Couldn't transfer 'lpage' column. The column may not exist.")
 
             # pubmedid
             try:
                 copy(new_index('pubmedid'), old_index('pubmedid'))
             except TypeError:
                 if row == 2:
-                    warning_popup("Couldn't find 'pubmedid' column.")
+                    warning_popup("Couldn't transfer 'pubmedid' column. The column may not exist.")
                 try:
                     copy(new_index('pubmedid'), old_index('PubMed ID'))
                 except TypeError:
                     if row == 2:
-                        warning_popup("Couldn't find 'PubMed ID' column either.")
+                        warning_popup("Couldn't transfer 'PubMed ID' column either. The column may not exist.")
 
             # primary_document_attached
             fill(new_index('primary_document_attached'), 'no')
-
-            # from_abstract
-            try:
-                # make column yellow
-                new_sheet.cell(row, new_index('from_abstract')).fill = yellow
-            except TypeError:
-                if row == 2:
-                    warning_popup("Couldn't find 'from_abstract' column.")
-
-            # copyright
-            try:
-                # make column yellow
-                new_sheet.cell(row, new_index('copyright')).fill = yellow
-            except TypeError:
-                if row == 2:
-                    warning_popup("Couldn't find 'copyright' column.")
-
-        #identify s&t authors
 
             # copy author information
             for num in range(1, a_count + 1):               #copy author information
@@ -754,13 +774,6 @@ def open_harvesting():
                 copy(new_index(f'author{num}_email'), old_index(f'author{num}_email'))
                 copy(new_index(f'author{num}_institution'), old_index(f'author{num}_institution'))
                 copy(new_index(f'author{num}_is_corporate'), old_index(f'author{num}_is_corporate'))
-
-        # Determine how many rows are in the sheet that is being read from
-        old_max_row = len([c for c in old_sheet.iter_rows(min_col=1, max_col=1, values_only=True) if c[0] is not None])
-        #old_max_row -= 1 # Because of the "in Scholars' Mine" at the bottom
-        new_max_row = old_max_row
-
-    #    print('Old max: ' + str(old_max_row) + '\tNew max: ' + str(new_max_row))
 
         # Transfer row information for the whole sheet
         update_progress(2, "Harvesting files...") # Filling in " + str(old_max_row) + " rows
@@ -847,24 +860,8 @@ def open_harvesting():
     #
     #            # Remove institution for any that aren't S&T (this includes co-authors and s&t students)
 
-        # Format Columns
-        update_progress(7, "Harvesting files...") # Adjusting column width
-
-        for new_col in range(1, new_max_row):
-            max_length = 0
-            for row in range(1, old_max_row):                                   #go through columns and rows
-                if len(str(new_sheet.cell(row, new_col).value)) > max_length:
-                    max_length = len(str(new_sheet.cell(row, new_col).value))   #find the longest cell
-                    if max_length >= 100:                                       #cell cannont be longer than 100
-                        new_sheet.column_dimensions[get_column_letter(new_col)].width = 100
-                        break
-
-            # Adjust the cell length
-            if max_length < 100:
-                new_sheet.column_dimensions[get_column_letter(new_col)].width = max_length * 1.2
-
         # Prepare for Author_Split
-        update_progress(8, "Harvesting files...") # Saving
+        update_progress(7, "Harvesting files...") # Saving
 
         def author_split_information(row):
             upper = new_sheet.cell(row, new_index("total_author_count")).value
@@ -881,24 +878,40 @@ def open_harvesting():
                     middle_initial = middle_name[0:1]
 
                     if num > 1:
-                        author_split = str(new_sheet.cell(row, specific_new_index("author", "_")).value) + " and " + str(last_name) + ", " + str(first_name) + " " + str(middle_initial) + "."
+                        author_split = str(new_sheet.cell(row, new_index("author")).value) + " and " + str(last_name) + ", " + str(first_name) + " " + str(middle_initial) + "."
                     else:
                         author_split = str(last_name) + ", " + str(first_name) + " " + str(middle_initial) + "."
                 else: #w/o middle name
                     if num > 1:
-                        author_split = str(new_sheet.cell(row, specific_new_index("author", "_")).value) + " and " + str(last_name) + ", " + str(first_name)
+                        author_split = str(new_sheet.cell(row, new_index("author")).value) + " and " + str(last_name) + ", " + str(first_name)
                     else:
                         author_split = str(last_name) + ", " + str(first_name)
 
                 try:
                     # author_split
-                    fill(specific_new_index("author", "_"), str(author_split))
+                    fill(new_index("author"), str(author_split))
                 except TypeError:
                     if row == 2:
-                        warning_popup("Couldn't find 'author' column.")
+                        warning_popup("Couldn't transfer 'author' column. The column may not exist.")
 
         for row in range(2, new_max_row + 1):
             author_split_information(row)
+
+        # Format Columns
+        update_progress(8, "Harvesting files...") # Adjusting column width
+
+        for new_col in range(1, new_max_col + 1):
+            max_length = 0
+            for new_row in range(1, new_max_row):                               #go through columns and rows
+                if len(str(new_sheet.cell(new_row, new_col).value)) > max_length:
+                    max_length = len(str(new_sheet.cell(new_row, new_col).value))   #find the longest cell
+                    if max_length >= 100:                                       #cell cannont be longer than 100
+                        new_sheet.column_dimensions[get_column_letter(new_col)].width = 100
+                        break
+
+            # Adjust the cell length
+            if max_length < 100:
+                new_sheet.column_dimensions[get_column_letter(new_col)].width = max_length * 1.13
 
         # Save excel
         update_progress(9, "Harvesting files...") # Saving
@@ -913,10 +926,10 @@ def open_harvesting():
         # Run program and update progress bar
         try:
             main(harvesting.filename)
-        except AttributeError:
-            error_popup("No file selected. Browse to select a file.")
-        except:
-            error_popup("There was an unknown error, the file could not be processed.")
+        except PermissionError:
+            error_popup("Could not save processed excel. The excel file that needs to be saved over is currently open. Close the excel file and hit the 'start' button again.")
+        #except:
+        #    error_popup("There was an unknown error, the file could not be processed.")
 
     # Create a button
     browse_button = Button(frame, text = "Browse", command = lambda : browse(), bg = '#78BE20', fg = '#003B49', font = 'tungsten 12 bold', borderwidth = 1, relief = "ridge")
