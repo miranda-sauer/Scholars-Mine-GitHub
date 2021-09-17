@@ -383,28 +383,6 @@ def open_harvesting():
                 break
             index += 1
 
-        #Code for getting rid of empty author columns
-        #temp_start = old_max_col + 1
-        #is_used = False
-
-        #while(not(is_used)):
-            #update variables
-        #    temp_stop = temp_start
-        #    temp_start = temp_stop - 7
-
-            #look for content
-        #    for row in range(2, old_max_row + 1):
-        #        for temp_col in range(temp_start, temp_stop): #searches through column headers
-        #            if old_sheet.cell(row, temp_col).value:
-        #                is_used = True
-        #                print("Row: " + str(row) + " Col: " + str(temp_col) + " Cell value: " + str(old_sheet.cell(row, temp_col).value))
-            
-        #    print("Author " + str(author_count) + " " + str(is_used))
-        #    if is_used == False:
-        #        author_count -= 1
-
-        print("Author Count: " + str(author_count))
-
         # Adds the 7 headers for an author
         def add_author_headers(new_col, num): #takes in starting column and author number
             #add headers to worksheet
@@ -421,7 +399,6 @@ def open_harvesting():
         for num in range(1, author_count + 1):      #creates column headers for author count
             add_author_headers(new_col, num)        #add column headers for another author
             new_col += 7                            #update the current empty column header
-        #    print("Author " + str(num) + " added.")
 
         # Determine how many columns are in the sheet that is being written to
         new_max_col = len([c for c in new_sheet.iter_cols(min_row=1, max_row=1, values_only=True) if c[0] is not None])
@@ -512,21 +489,30 @@ def open_harvesting():
                     warning_popup("Couldn't transfer 'source_fulltext_url' column. The column may not exist.")
 
             # author_classification
-            fill(new_index('author_classification'), 'faculty')
-
+            try:
+                fill(new_index('author_classification'), 'faculty')
+            except:
+                warning_popup("Could not find 'author_classification' column in new excel.")
+                
             # total_author_count
-            a_count = 0
+            try:
+                a_count = 0
 
-            for c in range(old_index('author1_fname'), old_max_col + 1, 7): #searches through column headers
-                if old_sheet.cell(row, c).value or old_sheet.cell(row, c + 1).value or old_sheet.cell(row, c + 2).value or old_sheet.cell(row, c + 3).value or old_sheet.cell(row, c + 4).value or old_sheet.cell(row, c + 5).value or old_sheet.cell(row, c + 6).value:
-                    a_count += 1                                            #updates a_count
-                else:
-                    break
+                for c in range(old_index('author1_fname'), old_max_col + 1, 7): #searches through column headers
+                    if old_sheet.cell(row, c).value or old_sheet.cell(row, c + 1).value or old_sheet.cell(row, c + 2).value or old_sheet.cell(row, c + 3).value or old_sheet.cell(row, c + 4).value or old_sheet.cell(row, c + 5).value or old_sheet.cell(row, c + 6).value:
+                        a_count += 1                                            #updates a_count
+                    else:
+                        break
 
-            fill(new_index('total_author_count'), a_count)
+                fill(new_index('total_author_count'), a_count)
+            except:
+                warning_popup("An error has occured with the 'total_author_count' column, the excel may be incomplete.")
 
             # institution_name
-            fill(new_index('institution_name'), 'Missouri University of Science and Technology')
+            try:
+                fill(new_index('institution_name'), 'Missouri University of Science and Technology')
+            except:
+                warning_popup("Could not find 'institution_name' column in new excel.")
 
             # abstract
             try:
@@ -550,7 +536,7 @@ def open_harvesting():
                 fill(new_index('comments'), output)
             except:
                 if row == 2:
-                    warning_popup("Couldn't transfer 'Funding Number' and 'Funding Sponsor' columns. The columns may not exist.")
+                    warning_popup("Couldn't transfer 'Funding Number' and 'Funding Sponsor' columns. The columns may not exist or have an error.")
 
             # keywords
             try:
@@ -560,68 +546,88 @@ def open_harvesting():
                     warning_popup("Couldn't transfer 'keywords' column. The column may not exist.")
 
             # isbn format function
-            def format_isbn(val_in):
-                if len(val_in) > 12 & len(val_in) < 16:         #between 13 and 15
-                    if "[" in val_in:
-                        string = val_in[2:15]                   #get number without [' ']
-                        upper = string[:3]                      #get first 3 numbers
-                        mid = string[3:12]                      #get middle 9 numbers
-                        lower = string[12:]                     #get last number
-                    else:
-                        upper = val_in[:3]                      #get first 3 numbers
-                        mid = val_in[3:12]                      #get middle 9 numbers
-                        lower = val_in[12:]                     #get last number
-                    output = upper + '-' + mid + '-' + lower    #format output
-                    return output
+            try:
+                def format_isbn(val_in):                            #format the number like ###-#########-#
+                    if len(val_in) > 12 & len(val_in) < 16:         #between 13 and 15
+                        if "[" and "]" in val_in:
+                            string = val_in[2:15]                   #get number without [' ']
+                            upper = string[:3]                      #get first 3 numbers
+                            mid = string[3:12]                      #get middle 9 numbers
+                            lower = string[12:]                     #get last number
+                        else:
+                            upper = str(val_in[:3])                 #get first 3 numbers
+                            mid = str(val_in[3:12])                 #get middle 9 numbers
+                            lower = str(val_in[12:])                #get last number
+                        output = upper + '-' + mid + '-' + lower    #format output
+                        return output
+            except:
+                warning_popup("Couldn't format isbn number column in row " + row + ". The isbn column may be incomplete.")
 
             # isbn
-            if old_sheet.cell(row, old_index('isbn')).value:
-                val_in = str(old_sheet.cell(row, old_index('isbn')).value)
-                if ',' in val_in:                               #two numbers
-                    for char in val_in:
-                        if ',' in char:
-                            char = str(char)
-                            first_num = val_in[:char]
-                            second_num = val_in[char + 1:]
-                            first_num = format_isbn(str(first_num))
-                            second_num = format_isbn(str(second_num))
-                            fill(new_index('isbn'), str(first_num) + ";" + str(second_num)) #output to cell
-                            break
-                else:                                           #one number
-                   fill(new_index('isbn'), format_isbn(val_in)) #output to cell
+            try:
+                if old_sheet.cell(row, old_index('isbn')).value: #check for value
+                    val_in = str(old_sheet.cell(row, old_index('isbn')).value) #get value
+                    if ',' in val_in: #there are two numbers in the value seperated by a comma
+                        for index in range(len(val_in)):   
+                            if ',' in val_in[index]: #find the comma
+                                first_num = str(val_in[:index]) #find the first number
+                                second_num = str(val_in[index + 1:]) #find the second number
+                                if first_num[:3] == "978" and second_num[:3] == "978": #numbers must start with 978
+                                    fill(new_index('isbn'), str(first_num) + ";" + str(second_num)) #output to cell
+                                    break
+                                else: #at least one number doesn't start with 978, find which one is okay if any
+                                    if first_num[:3] == "978": 
+                                        fill(new_index('isbn'), format_isbn(first_num))#output to cell
+                                    if second_num[:3] == "978":
+                                        fill(new_index('isbn'), format_isbn(second_num)) #output to cell
+                    else: #there is one number in the value
+                        if val_in[:3] == "978": #number must start with 978
+                            fill(new_index('isbn'), format_isbn(val_in)) #output to cell
+            except TypeError:
+                if row == 2:
+                    warning_popup("Couldn't transfer 'isbn' column. The column may not exist.")
+            except:
+                warning_popup("Couldn't transfer 'isbn' column. An error in the code has occured in row " + row + ".")
 
             # issn
-            e_ISSN = False
-            issn = False
+            try:
+                e_ISSN = False
+                issn = False
 
-            if old_sheet.cell(row, old_index('e-ISSN')).value:
-                val_in = old_sheet.cell(row, old_index('e-ISSN')).value
-                string = str(val_in).zfill(8)                       #add missing leading 0s
-                upper = string[:4]                                  #get first 4 numbers
-                lower = string[4:]                                  #get last 4 numbers
-                val_out = upper + "-" + lower                       #format output ####-####
-                e_ISSN = True
+                if old_sheet.cell(row, old_index('e-ISSN')).value:
+                    val_in = old_sheet.cell(row, old_index('e-ISSN')).value
+                    string = str(val_in).zfill(8)                       #add missing leading 0s
+                    upper = string[:4]                                  #get first 4 numbers
+                    lower = string[4:]                                  #get last 4 numbers
+                    val_out = upper + "-" + lower                       #format output ####-####
+                    e_ISSN = True
 
-            if old_sheet.cell(row, old_index('issn')).value:
-                val_in2 = old_sheet.cell(row, old_index('issn')).value
-                string2 = str(val_in2).zfill(8)                     #add missing leading 0s
-                upper2 = string2[:4]                                #get first 4 numbers
-                lower2 = string2[4:]                                #get last 4 numbers
-                val_out2 = upper2 + "-" + lower2                    #format output ####-####
-                issn = True
+                if old_sheet.cell(row, old_index('issn')).value:
+                    val_in2 = old_sheet.cell(row, old_index('issn')).value
+                    string2 = str(val_in2).zfill(8)                     #add missing leading 0s
+                    upper2 = string2[:4]                                #get first 4 numbers
+                    lower2 = string2[4:]                                #get last 4 numbers
+                    val_out2 = upper2 + "-" + lower2                    #format output ####-####
+                    issn = True
 
-            output = ''
+                output = ''
 
-            if issn and e_ISSN:
-                output = val_out2 + '; ' + val_out                  #outputs both issn
-            else:
-                if e_ISSN:
-                    output = val_out                                #outputs 1st issn
+                if issn and e_ISSN:
+                    output = val_out2 + '; ' + val_out                  #outputs both issn
+                else:
+                    if e_ISSN:
+                        output = val_out                                #outputs 1st issn
 
-                if issn:
-                    output = val_out2                               #outputs 2nd issn
+                    if issn:
+                        output = val_out2                               #outputs 2nd issn
 
-            fill(new_index('issn'), output)      #output to cell
+                fill(new_index('issn'), output)      #output to cell
+            except TypeError:
+                if row == 2:
+                    warning_popup("Couldn't transfer 'isbn' column. The column may not exist.")
+            except:
+                warning_popup("Couldn't transfer 'isbn' column. An error in the code has occured in row " + row + ".")
+
 
             # document_type
             try:
@@ -634,14 +640,23 @@ def open_harvesting():
                 fill(new_index('document_type'), 'article_conference_proceedings')
 
             # document_version
-            fill(new_index('document_version'), 'Citation')
+            try:
+                fill(new_index('document_version'), 'Citation')
+            except:
+                warning_popup("Could not find 'document_version' column in new excel.")
 
             # file_type
-            fill(new_index('file_type'), 'text')
-
+            try:
+                fill(new_index('file_type'), 'text')
+            except:
+                warning_popup("Could not find 'file_type' column in new excel.")
+            
             # language_iso
-            fill(new_index('language_iso'), 'English')
-
+            try:
+                fill(new_index('language_iso'), 'English')
+            except:
+                warning_popup("Could not find 'language_iso' column in new excel.")
+            
             # language2
             try:
                 copy(new_index('language2'), old_index('language2'))
@@ -650,8 +665,11 @@ def open_harvesting():
                     warning_popup("Couldn't transfer 'language2' column. The column may not exist.")
 
             # rights
-            fill(new_index('rights'), '© 2021 , All rights reserved.')
-
+            try:
+                fill(new_index('rights'), '© 2021 , All rights reserved.')
+            except:
+                warning_popup("Could not find 'rights' column in new excel.")
+            
             # publication_date
             try:
                 copy(new_index('publication_date'), old_index('publication_date'))
@@ -691,29 +709,6 @@ def open_harvesting():
                     fill(new_index('custom_publication_date'), output)
             except:
                 print ("Unusual formatting in 'publication_date' column")
-
-            # source_publication
-            filled = False
-
-            # Open Known Meetings File
-            path = 'R:/storage/libarchive/b/1. Processing/8. Other Projects/Scholars-Mine-GitHub/Control Panel/CODE/Harvesting/Text Files/KnownMeetings.txt'
-            with open(path, "r") as all_meetings:
-                # Check for matching meetings
-                for one_meeting in all_meetings:
-                    check = str(old_sheet.cell(row, old_index('source_publication')).value)
-                    if check in str(one_meeting):
-                        fill(new_index('meeting_name'), str(one_meeting))
-                        if 'Proceedings of the ' not in check:
-                            filled = True
-                            fill(new_index('source_publication'), 'Proceedings of the ' + check)
-                        break
-
-            if filled == False:
-                try:
-                    copy(new_index('source_publication'), old_index('source_publication'))
-                except TypeError:
-                    if row == 2:
-                        warning_popup("Couldn't transfer 'source_publication' column. The column may not exist.")
 
             # volnum
             try:
@@ -766,14 +761,17 @@ def open_harvesting():
             fill(new_index('primary_document_attached'), 'no')
 
             # copy author information
-            for num in range(1, a_count + 1):               #copy author information
-                copy(new_index(f'author{num}_fname'), old_index(f'author{num}_fname'))
-                copy(new_index(f'author{num}_mname'), old_index(f'author{num}_mname'))
-                copy(new_index(f'author{num}_lname'), old_index(f'author{num}_lname'))
-                copy(new_index(f'author{num}_suffix'), old_index(f'author{num}_suffix'))
-                copy(new_index(f'author{num}_email'), old_index(f'author{num}_email'))
-                copy(new_index(f'author{num}_institution'), old_index(f'author{num}_institution'))
-                copy(new_index(f'author{num}_is_corporate'), old_index(f'author{num}_is_corporate'))
+            try:
+                for num in range(1, a_count + 1):               #copy author information
+                    copy(new_index(f'author{num}_fname'), old_index(f'author{num}_fname'))
+                    copy(new_index(f'author{num}_mname'), old_index(f'author{num}_mname'))
+                    copy(new_index(f'author{num}_lname'), old_index(f'author{num}_lname'))
+                    copy(new_index(f'author{num}_suffix'), old_index(f'author{num}_suffix'))
+                    copy(new_index(f'author{num}_email'), old_index(f'author{num}_email'))
+                    copy(new_index(f'author{num}_institution'), old_index(f'author{num}_institution'))
+                    copy(new_index(f'author{num}_is_corporate'), old_index(f'author{num}_is_corporate'))
+            except:
+                warning_popup("An error occured while copying author information. Excel may be incomplete.")
 
         # Transfer row information for the whole sheet
         update_progress(2, "Harvesting files...") # Filling in " + str(old_max_row) + " rows
@@ -784,81 +782,50 @@ def open_harvesting():
         # Fix All Uppercase Titles
         update_progress(3, "Harvesting files...") # Fixing all uppercase titles
 
-        for row in range(2, new_max_row):
-            title = new_sheet.cell(row, new_index('title')).value
-            fill(new_index('title'), manual_upper(title))
+        try:
+            for row in range(2, new_max_row):
+                title = new_sheet.cell(row, new_index('title')).value
+                fill(new_index('title'), manual_upper(title))
+        except:
+            warning_popup("An error occured while fixing uppercase titles. Excel may be incomplete.")
 
         # Fix Subscripts and
         update_progress(4, "Harvesting files...") # Fixing subscripts and superscripts
 
-        for row in range(2, new_max_row):
-            fill(new_index('title'), replace_sub_sup(new_sheet.cell(row, new_index('title')).value))
+        try:
+            for row in range(2, new_max_row):
+                fill(new_index('title'), replace_sub_sup(new_sheet.cell(row, new_index('title')).value))
+        except:
+            warning_popup("An error occured while fixing subscripts and superscripts. Excel may be incomplete.")
 
         # Switching All Dates to Numbers
         update_progress(5, "Harvesting files...") # Switching all dates to numbers
 
-        for row in range(2, new_max_row):
-            # Fix issnum column
-            col_value = str(new_sheet.cell(row, new_index('issnum')).value)
-            if col_value:                                                   #if a value exists
-                if '00:00:00' in col_value:                                 #change date to number
-                    fill(new_index('issnum'), date_to_num(str(col_value)))
-                elif '-' in col_value:                                      #get rid of dash
-                    fill(new_index('issnum'), remove_dash(str(col_value)))
+        try:
+            for row in range(2, new_max_row):
+                # Fix issnum column
+                col_value = str(new_sheet.cell(row, new_index('issnum')).value)
+                if col_value:                                                   #if a value exists
+                    if '00:00:00' in col_value:                                 #change date to number
+                        fill(new_index('issnum'), date_to_num(str(col_value)))
+                    elif '-' in col_value:                                      #get rid of dash
+                        fill(new_index('issnum'), remove_dash(str(col_value)))
 
-                if 'a' in col_value or 'e' in col_value or 'i' in col_value or 'o' in col_value or 'u' in col_value or 'y' in col_value: #get rid of words
-                    fill(new_index('issnum'), '')
+                    if 'a' in col_value or 'e' in col_value or 'i' in col_value or 'o' in col_value or 'u' in col_value or 'y' in col_value: #get rid of words
+                        fill(new_index('issnum'), '')
 
-            # Fix volnum column
-            col_value = str(new_sheet.cell(row, new_index('volnum')).value)
-            if col_value:                                                   #if a value exists
-                if '00:00:00' in col_value:                                 #change date to number
-                    fill(new_index('volnum'), date_to_num(str(col_value)))
-                elif '-' in col_value:                                      #get rid of dash
-                    fill(new_index('volnum'), remove_dash(str(col_value)))
+                # Fix volnum column
+                col_value = str(new_sheet.cell(row, new_index('volnum')).value)
+                if col_value:                                                   #if a value exists
+                    if '00:00:00' in col_value:                                 #change date to number
+                        fill(new_index('volnum'), date_to_num(str(col_value)))
+                    elif '-' in col_value:                                      #get rid of dash
+                        fill(new_index('volnum'), remove_dash(str(col_value)))
 
-                if 'a' in col_value or 'e' in col_value or 'i' in col_value or 'o' in col_value or 'u' in col_value or 'y' in col_value: #get rid of words
-                    fill(new_index('volnum'), '')
-
-    #    # Database Check
-    #    update_progress(6, "Harvesting files...") # Referencing database
-    #    print()
-    #    print('\t...referencing database (5/7)...')
-    #
-    #    for row in range(2, new_max_row + 1):
-    #        total_author_count = new_sheet.cell(row, new_index('total_author_count')).value
-    #        print('The total author count for row ' + str(row) + ' is ' + str(total_author_count))
-    #        print()
-    #
-    #        for num in range (1, total_author_count + 1):
-    #            author = []
-    #            author.append(str(new_sheet.cell(row, new_index(f'author{num}_fname')).value))
-    #            author.append(str(new_sheet.cell(row, new_index(f'author{num}_mname')).value))
-    #            author.append(str(new_sheet.cell(row, new_index(f'author{num}_lname')).value))
-    #            author.append(str(new_sheet.cell(row, new_index(f'author{num}_suffix')).value))
-    #            author.append(str(new_sheet.cell(row, new_index(f'author{num}_email')).value))
-    #            author.append(str(new_sheet.cell(row, new_index(f'author{num}_institution')).value))
-    #            author.append(str(new_sheet.cell(row, new_index(f'author{num}_is_corporate')).value))
-    #
-    #            #print(author)
-    #            #print()
-    #
-    #
-    #            print('Email before: ' + str(author[4]))
-    #            print()
-    #
-    #            # Identify S&T Faculty
-    #            if(author[5] == 'Missouri University of Science and Technology' and author[4] is not None):
-    #                author[4] = search_database(author[2], author[0])
-    #
-    #            if author[4] and author[5] == 'Missouri University of Science and Technology':
-    #                print('Email after: ' + str(author[4]))
-    #                print()
-    #                fill(new_index('author' + str(num) + '_email'), author[4])
-    #                print('Email added to row: ' + str(row) + '\t\tAuthor #: ' + str(num))
-    #                print()
-    #
-    #            # Remove institution for any that aren't S&T (this includes co-authors and s&t students)
+                    if 'a' in col_value or 'e' in col_value or 'i' in col_value or 'o' in col_value or 'u' in col_value or 'y' in col_value: #get rid of words
+                        fill(new_index('volnum'), '')
+        except:
+            warning_popup("An error occured while fixing date formats. Excel may be incomplete.")
 
         # Prepare for Author_Split
         update_progress(7, "Harvesting files...") # Saving
@@ -871,7 +838,6 @@ def open_harvesting():
                 # gather name information
                 last_name = new_sheet.cell(row, new_index("author" + str(num) + "_lname")).value
                 first_name = new_sheet.cell(row, new_index("author" + str(num) + "_fname")).value
-                
 
                 if new_sheet.cell(row, new_index("author" + str(num) + "_mname")).value: #w/ middle name
                     middle_name = new_sheet.cell(row, new_index("author" + str(num) + "_mname")).value
@@ -900,26 +866,32 @@ def open_harvesting():
         # Format Columns
         update_progress(8, "Harvesting files...") # Adjusting column width
 
-        for new_col in range(1, new_max_col + 1):
-            max_length = 0
-            for new_row in range(1, new_max_row):                               #go through columns and rows
-                if len(str(new_sheet.cell(new_row, new_col).value)) > max_length:
-                    max_length = len(str(new_sheet.cell(new_row, new_col).value))   #find the longest cell
-                    if max_length >= 100:                                       #cell cannont be longer than 100
-                        new_sheet.column_dimensions[get_column_letter(new_col)].width = 100
-                        break
+        try:
+            for new_col in range(1, new_max_col + 1):
+                max_length = 0
+                for new_row in range(1, new_max_row):                               #go through columns and rows
+                    if len(str(new_sheet.cell(new_row, new_col).value)) > max_length:
+                        max_length = len(str(new_sheet.cell(new_row, new_col).value))   #find the longest cell
+                        if max_length >= 100:                                       #cell cannont be longer than 100
+                            new_sheet.column_dimensions[get_column_letter(new_col)].width = 100
+                            break
 
-            # Adjust the cell length
-            if max_length < 100:
-                new_sheet.column_dimensions[get_column_letter(new_col)].width = max_length * 1.13
+                # Adjust the cell length
+                if max_length < 100:
+                    new_sheet.column_dimensions[get_column_letter(new_col)].width = max_length * 1.13
+        except:
+            warning_popup("An error occured while adjusting column width. Some column widths may not have changed.")
 
         # Save excel
         update_progress(9, "Harvesting files...") # Saving
 
-        new_path = str(file_name)[:len(file_name) - 5] + '_ReadyForAuthorSplit.xlsx'
-        new_book.save(new_path)
+        try:
+            new_path = str(file_name)[:len(file_name) - 5] + '_ReadyForAuthorSplit.xlsx'
+            new_book.save(new_path)
 
-        update_progress(10, "Excel Created")
+            update_progress(10, "Excel Created")
+        except:
+            error_popup("An error occured while saving the excel. The excel may not have been saved.")
 
     # Start Button Function
     def start():
@@ -928,8 +900,8 @@ def open_harvesting():
             main(harvesting.filename)
         except PermissionError:
             error_popup("Could not save processed excel. The excel file that needs to be saved over is currently open. Close the excel file and hit the 'start' button again.")
-        #except:
-        #    error_popup("There was an unknown error, the file could not be processed.")
+        except:
+            error_popup("There was an unknown error, the file could not be processed.")
 
     # Create a button
     browse_button = Button(frame, text = "Browse", command = lambda : browse(), bg = '#78BE20', fg = '#003B49', font = 'tungsten 12 bold', borderwidth = 1, relief = "ridge")
