@@ -7,7 +7,7 @@ import time
 import os
 import glob
 import subprocess
-#from Author_Split import open_author_split
+from UI_Author_Split import open_author_split
 from Harvesting import open_harvesting
 from Cannon_Remake import open_cannon_remake
 from Make_Folder import open_make_folder
@@ -50,12 +50,11 @@ def open_control_panel():
     frame = LabelFrame(root, text = "Select a Program", bg = '#003B49', fg = "white", font = 'tungsten 14 bold')
 
     # Open Programs
-    def open_author_split():
-        # Open Command Window Shortcut
+    def open_author_split_program():
         try:
-            os.startfile("R:/storage/libarchive/b/1. Processing/8. Other Projects/Scholars-Mine-GitHub/Stand Alone Author Split/Author Split Program.lnk")
+            open_author_split()
         except:
-            error_popup("Could not open author split program.")
+            error_popup("Could not open harvesting program.")
 
     def open_harvesting_program():
         try:
@@ -89,8 +88,8 @@ def open_control_panel():
         error_popup("The diacritics program is not currently working.")
 
     # Create a button
+    author_split = Button(frame, text = "        Author Split       ", command = lambda : open_author_split(), bg = '#78BE20', fg = '#003B49', font = 'tungsten 12 bold', borderwidth = 1, relief = "ridge")
     harvest = Button(frame, text = "Harvest & Reformat", command = lambda : open_harvesting(), bg = '#78BE20', fg = '#003B49', font = 'tungsten 12 bold', borderwidth = 1, relief = "ridge")
-    author_split = Button(frame, text = "      Author Split        ", command = lambda : open_author_split(), bg = '#78BE20', fg = '#003B49', font = 'tungsten 12 bold', borderwidth = 1, relief = "ridge")
     diacritics = Button(frame, text = "         Diacritics         ", command = lambda : open_diacritics_program(), bg = '#DCE3E4', fg = '#63666A', font = 'tungsten 12 bold', borderwidth = 1, relief = "ridge")
 
     make_folder = Button(frame, text = "       Make Folder       ", command = lambda : open_make_folder(), bg = '#78BE20', fg = '#003B49', font = 'tungsten 12 bold', borderwidth = 1, relief = "ridge")
@@ -101,8 +100,8 @@ def open_control_panel():
     exit_button = Button(root, text = "     Exit All     ", command = root.quit, bg = '#78BE20', fg = '#003B49', font = 'tungsten 12 bold', borderwidth = 1, relief = "ridge")
 
     # Place in frame
-    harvest.grid(row = 0, column = 0, padx = (20,10), pady = (15,10))
-    author_split.grid(row = 0, column = 1, padx = 10, pady = (15,10))
+    author_split.grid(row = 0, column = 0, padx = (20,10), pady = (15,10))
+    harvest.grid(row = 0, column = 1, padx = 10, pady = (15,10))
     diacritics.grid(row = 0, column = 2, padx = (10,20), pady = (15,10))
 
     make_folder.grid(row = 1, column = 0, padx = (20,10), pady = (5,20))

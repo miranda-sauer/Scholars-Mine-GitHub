@@ -1,7 +1,8 @@
-﻿import pickle
+import pickle
+import ftfy
 
 special_char = {
-                'Ã¢â‚¬â„¢'  :"'",            
+                'Ã¢â‚¬â„¢'  :"'",   
                 'Ã¢â€žâ€œ'  :'ℓ',   
                 'Ã¢â€ â€œ'  :'↓',
                 'Ã¢â‚¬â€œ'  :'—',   
@@ -130,17 +131,49 @@ special_char = {
                 'Ó§'        :'ö'                                
                 }
 
-#                ''      :''
+
+def special_char_remove( col ):
+    global special_char
+    # I think the following characters are produced from the text editor converted our UTF-8 
+    #   characters into some other character set, like ISO-8859-1.
+    for i in range( len(col) ):
+        col[i] = str(col[i])
+        for char in special_char:
+            while char in col[i]:
+                col[i] = col[i].replace(char, special_char[char])
+        col[i] = ftfy.fix_text(col[i])
+
+    # For some reaseon ftfy.fix_text(.) messes with some of the characters we replaced
+    #  however, the first time (above) is needed for the ftfy to work.
+    for i in range( len(col) ):
+        for char in special_char:
+            while char in col[i]:
+                col[i] = col[i].replace(char, special_char[char])
+
+    # for i in ['Ã','¥','¶','â','Â','¼','½','¾']:
+    #     if i in string:
+    #         with open('zzz_REVIEW_STRING.txt','a+') as f:
+    #             try:
+    #                 f.write(f"REVIEW STRING in {excelName} {cell}:\n {string}\n\n")
+    #             except:
+    #                 print(f"REVIEW STRING in {excelName} {cell}:\n {string}\n\n")
+    #         break
+    return col
 
 
-# extra_special_char = {  'Ã‚'        :'',
-#                         'Ã¯Â»Â¿'    :''
-#                     }
+def ensure_encryption(df):
 
-#with open('R:/storage/libarchive/a/Student Processing/0.5. Author split names/CODE/special_char.pickle','wb') as f:
-with open('R:/storage/libarchive/a/zzz_Programs/Author_Split/CODE/special_char.pickle','wb') as f:
-    pickle.dump(special_char, f, pickle.HIGHEST_PROTOCOL)
+    for col in ["Funding Sponsor", "keywords", "abstract", "publisher", "source_publication"]:
+        # try:
+        df.loc[ :, col ] = df.loc[ :, col ].fillna('').values
+        df.loc[ :, col ] = special_char_remove( df[ col ].values )
+        # except TypeError as e:
+        #     print( e.__str__() )
+        #     print( df.loc[ :, col ] )
+    
+    for col in df.columns:
+        if col[-6:] in ["_lname", "_mname", "_fname"]:
+            df.loc[ :, col ] = df.loc[ :, col ].fillna('').values
+            df.loc[ :, col ] = special_char_remove( df[ col ].values )
 
-# #with open('R:/storage/libarchive/a/Student Processing/0.5. Author split names/CODE/extra_special_char.pickle','wb') as f:
-# with open('R:/storage/libarchive/a/zzz_Programs/Author_Split/CODE/special_char.pickle','wb') as f:
-#     pickle.dump(extra_special_char, f, pickle.HIGHEST_PROTOCOL)
+    return df

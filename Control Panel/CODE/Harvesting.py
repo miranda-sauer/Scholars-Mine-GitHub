@@ -2,6 +2,7 @@
 #           IMPORT                                                                #
 # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * #
 import datetime
+from dateutil.relativedelta import relativedelta
 import sqlite3
 import time
 from openpyxl import Workbook
@@ -18,89 +19,19 @@ import os
 
 
 # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * #
-#           REMOVE DASH                                                             #
-# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * #
-
-def remove_dash(col_value):
-    index = 0                                                                       # Create index
-
-    while index >= 0 and index < len(col_value):                                    # Search through string with a valid index
-        if '-' in col_value[index]:                                                 # Find dash
-            col_value = col_value[:index] + ' thru ' + col_value[index + 1:]        # Remove dash and replace with thru
-        index += 1                                                                  # Increment index
-
-    return col_value                                                                # Return string without dash
-
-
-
-# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * #
 #           CHANGE DATE TO NUM                                                      #
 # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * #
 
-def date_to_num(issnum):
-    # Get parts from date
-    month = issnum[5:7]
-    day = issnum[8:10]
+def date_to_num(input):
+    input = input.split() #separate date from timestamp ["2021-03-04","00:00:00"]
+    input = input[0].split("-", 1) #separate year from month&day ["2021", "03-04"]
+    input = input[1].split("-") #separte month and day ["03, 04"]
 
-    # Get rid of 0s
-    if '0' in month[0]:
-        month = month[1:]
-
-    if '0' in day[0]:
-        day = day[1:]
-
-    # Format output
-    if int(day) == int(month):
-        output = day
-    elif int(day) > int(month):
-        output = month + ' thru ' + day
-    elif int(day) < int(month):
-        output = day + ' thru ' + month
-    return output
-
-
-
-# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * #
-#           CAPITALIZE LETTER                                                       #
-# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * #
-
-def manual_upper(title):
-    fixed_title = ''    #value returned
-    words = []          #list of words in title
-    index = []          #list of indicies for uppercase words
-    count = 0           #index for uppercase words
-    start = 0           #used for finding words in title
-    stop = 1            #used for finding words in title
-
-    # Find words in title and add them to words[]
-    while start < len(title) and stop < len(title) and start < stop:
-        if ' ' in title[stop]:
-            words.append(str(title[start:stop]) + ' ')
-            start = stop + 1
-            stop += 1
-        if stop == len(title) - 1:
-            words.append(str(title[start:stop + 1]))
-        stop += 1
-
-    # Finds uppercase words and adds index to index[]
-    for element in words:
-        if element.isupper() == True:
-            index.append(count)
-        count += 1
-
-    # Depending on percentage of uppercase words, makes words lowercase
-    if (len(index)/len(words)*100) > 50: #percentage of uppercase words
-        for value in index:
-            words[value] = (words[value].lower())
-
-    # Puts all fixed words back into one string
-    for element in words:
-        fixed_title = fixed_title + element
-
-    #Capitalizes first letter in title
-    fixed_title = fixed_title[0].upper() + fixed_title[1:]
-
-    return fixed_title
+    #cast to and int and then back to a string to get rid of leading 0's
+    if int(input[0]) < int(input[1]):
+        return str(int(input[0])) + " thru " + str(int(input[1]))
+    else:
+        return str(int(input[1])) + " thru " + str(int(input[0]))
 
 
 
@@ -211,34 +142,6 @@ def char_to_sup(argument):
 
 
 # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * #
-#           SEARCH DATABASE FOR AUTHORS                                             #
-# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * #
-
-def search_database(l_name, f_name):
-    conn = sqlite3.connect('R:/storage/libarchive/b/1. Processing/8. Other Projects/Scholars-Mine-GitHub/Control Panel/CODE/faculty.db')
-
-    c = conn.cursor()
-
-    print("Looking for... " + str(l_name) + ', ' + str(f_name))
-    print()
-
-    c.execute("SELECT * FROM faculty WHERE last_name = ? AND first_name = ?", (l_name,f_name))
-
-    people = c.fetchall()
-
-    for person in people:
-        for num in range(0, 10):
-            print(person[num])
-        print('* * * * * * * * * * * * * * * * * * * * * * * * * * * * *')
-        if person[7]:
-                conn.close()
-                return person[7]
-
-    conn.close()
-
-
-
-# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * #
 #           DISPLAY WINDOW                                                          #
 # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * #
 
@@ -300,6 +203,10 @@ def open_harvesting():
     def warning_popup(warning_message):
         messagebox.showwarning("Warning", warning_message)
 
+    # Information Message Popup
+    def info_popup(info_message):
+        messagebox.showinfo("Information", info_message)
+
     # Update Progress Bar
     def update_progress(p, t):
         # Update bar value
@@ -349,7 +256,7 @@ def open_harvesting():
         new_sheet = new_book.active         #create worksheet
 
         # Column Headers
-        headers =   ["open_access", "url", "title", "title_alternative", "doi", "source_fulltext_url",
+        headers =   ["open_access", "sherpa_romeo_uri", "pathway_version", "url", "title", "title_alternative", "doi", "source_fulltext_url",
                      "additional_text_uri", "author_classification", "total_author_count", "faculty_author_count", 
                      "institution_name", "authorized_name", "abstract", "meeting_name", "department1", "department2", 
                      "department3", "department4", "centers_labs", "centers_labs2", "centers_labs3", "centers_labs4", 
@@ -358,7 +265,7 @@ def open_harvesting():
                      "distribution_license", "publication_date", "custom_publication_date", "publisher",
                      "publisher_place", "source_publication", "volnum", "issnum", "articlenum", "fpage", 
                      "lpage", "pubmedid", "disciplines", "embargo_date", "date_uploaded", 
-                     "primary_document_attached", "copyright", "author"]
+                     "primary_document_attached", "copyright"]
 
         # Add Column Headers (before authors)
         new_col = 1
@@ -374,11 +281,12 @@ def open_harvesting():
         new_max_row = old_max_row
 
         # Starting author count
-        last_cell = str(old_sheet.cell(1, old_max_col).value)[6:]
+        last_cell = str(old_sheet.cell(1, old_max_col - 3).value)[6:]
 
         index = 0
         for letter in last_cell:
             if letter == '_':
+                print(last_cell[:index])
                 author_count = int(last_cell[:index])
                 break
             index += 1
@@ -395,7 +303,6 @@ def open_harvesting():
             new_sheet.cell(1,  new_col+6).value = f'author{num}_is_corporate'
 
         # Add authors
-        #print("Author Count: " + str(author_count))
         for num in range(1, author_count + 1):      #creates column headers for author count
             add_author_headers(new_col, num)        #add column headers for another author
             new_col += 7                            #update the current empty column header
@@ -403,16 +310,13 @@ def open_harvesting():
         # Determine how many columns are in the sheet that is being written to
         new_max_col = len([c for c in new_sheet.iter_cols(min_row=1, max_row=1, values_only=True) if c[0] is not None])
 
-        # Creates yellow background fill
-        yellow = PatternFill(patternType = 'solid', fgColor = 'fffb00')
-
-        def new_index(new_header):
+        def get_new_index(new_header):
             for new_col in range(1, new_max_col + 1):
                 new_col_head = new_sheet.cell(1, new_col).value
                 if new_header == new_col_head:
                     return new_col
 
-        def old_index(old_header):
+        def get_old_index(old_header):
             for old_col in range(1, old_max_col + 1):
                 old_col_head = old_sheet.cell(1, old_col).value
                 if old_header == old_col_head:
@@ -421,110 +325,123 @@ def open_harvesting():
         # Copy Information
         # col is the column index where info is being copied to (new excel)
         # old_col is the column index where info is being copied from (old excel)
-        def copy(new_col, old_col):
-            new_sheet.cell(row, new_col).value = old_sheet.cell(row, old_col).value
+        def copy(new_header, old_header):
+            try:
+                new_col_index = get_new_index(new_header)
+                old_col_index = get_old_index(old_header)
+                new_sheet.cell(row, new_col_index).value = old_sheet.cell(row, old_col_index).value
+            except:
+                if row == 2:
+                    warning_popup("Couldn't copy new '" + str(new_header) + "' column from old '" + str(old_header) + "' column.")
 
         # Fill Information
         # col is the column index where info is being filled (new excel)
         # fill_text is the text that is filled into the new excel
-        def fill(new_col, fill_text):
-            new_sheet.cell(row, new_col).value = fill_text
+        def fill(new_header, fill_text):
+            try:
+                new_col_index = get_new_index(new_header)
+                new_sheet.cell(row, new_col_index).value = fill_text
+            except: 
+                if row == 2:
+                    warning_popup("Couldn't fill new '" + str(new_header) + "' column with '" + str(fill_text) + "'.")
+
+        # Creates yellow background fill
+        yellow = PatternFill(patternType = 'solid', fgColor = 'fffb00')
 
         # Add Highlight to Column Headers
-        new_sheet.cell(1, new_index('open_access')).fill = yellow
-        new_sheet.cell(1, new_index('url')).fill = yellow
-        new_sheet.cell(1, new_index('copyright')).fill = yellow
+        new_sheet.cell(1, get_new_index('open_access')).fill = yellow
+        new_sheet.cell(1, get_new_index('url')).fill = yellow
+        new_sheet.cell(1, get_new_index('copyright')).fill = yellow
+
+        #Pathway count
+        try:
+            looking = True
+            pathway_count = 0
+            while(looking):
+                if get_old_index(f'Pathway {pathway_count+1}: Version'):
+                    #Found a set of pathway information
+                    pathway_count += 1
+                    looking = True
+                else:
+                    #Did not find anymore pathway information
+                    looking = False
+        except:
+            warning_popup("Could not determine number of pathways. The 'rights', 'distribution_license', and 'embargo_date' columns will not transfer.")
 
         # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * #
         #          FILLS ROW INFORMATION (in order of reformatted excel)            #
         # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * #
         def row_information(row):
             # open_access
-            try:
-                if old_sheet.cell(row, old_index('Open Access')).value == "OA":
-                    #Finds which specific OA it is
-                    if old_sheet.cell(row, old_index('Gold OA')).value == "OA":
-                        copy(new_index('open_access'), old_index('Gold OA'))
-                    elif old_sheet.cell(row, old_index('Hybrid Gold OA')).value != "-":
-                        copy(new_index('open_access'), old_index('Hybrid Gold OA'))
-                    elif old_sheet.cell(row, old_index('Bronze OA')).value != "-":
-                        copy(new_index('open_access'), old_index('Bronze OA'))
-                    elif old_sheet.cell(row, old_index('Green Final OA')).value != "-":
-                        copy(new_index('open_access'), old_index('Green Final OA'))
-                    elif old_sheet.cell(row, old_index('Green Accepted OA')).value != "-":
-                        copy(new_index('open_access'), old_index('Green Accepted OA')) 
-                else:
-                    #default OA
-                    copy(new_index('open_access'), old_index('Open Access'))
-            except TypeError:
-                if row == 2:
-                    warning_popup("Couldn't transfer 'open_access' column. The column may not exist.")
+            if old_sheet.cell(row, get_old_index('Open Access')).value == "OA":
+                #Finds which specific OA it is
+                if old_sheet.cell(row, get_old_index('Gold OA')).value == "OA":
+                    copy('open_access', 'Gold OA')
+                elif old_sheet.cell(row, get_old_index('Hybrid Gold OA')).value != "-":
+                    copy('open_access', 'Hybrid Gold OA')
+                elif old_sheet.cell(row, get_old_index('Bronze OA')).value != "-":
+                    copy('open_access', 'Bronze OA')
+                elif old_sheet.cell(row, get_old_index('Green Final OA')).value != "-":
+                    copy('open_access', 'Green Final OA')
+                elif old_sheet.cell(row, get_old_index('Green Accepted OA')).value != "-":
+                    copy('open_access', 'Green Accepted OA')
+            else:
+                #default OA
+                copy('open_access', 'Open Access')
+
+
+            # sherpa_romeo_uri
+            # copy('sherpa_romeo_uri', 'Sherpa Romeo URI')
+
+            # pathway_version
+            # copy('pathway_version', 'Pathway 1: Version')
 
             # url
-            try:
-                copy(new_index('url'), old_index('source_fulltext_url'))
-            except TypeError:
-                if row == 2:
-                    warning_popup("Couldn't transfer 'url' column. The column may not exist.")
+            copy('url', 'source_fulltext_url')
 
             # title
-            try:
-                copy(new_index('title'), old_index('title'))
-            except TypeError:
-                if row == 2:
-                    warning_popup("Couldn't transfer 'title' column. The column may not exist.")
+            copy('title', 'title')
 
             # doi
-            try:
-                copy(new_index('doi'), old_index('doi'))
-            except TypeError:
-                if row == 2:
-                    warning_popup("Couldn't transfer 'doi' column. The column may not exist.")
+            copy('doi', 'doi')
 
             # source_fulltext_url
-            try:
-                copy(new_index('source_fulltext_url'), old_index('source_fulltext_url'))
-            except TypeError:
-                if row == 2:
-                    warning_popup("Couldn't transfer 'source_fulltext_url' column. The column may not exist.")
-
+            copy('source_fulltext_url', 'source_fulltext_url')
+            
             # author_classification
-            try:
-                fill(new_index('author_classification'), 'faculty')
-            except:
-                warning_popup("Could not find 'author_classification' column in new excel.")
+            fill('author_classification', 'faculty')
                 
             # total_author_count
-            try:
-                a_count = 0
-
-                for c in range(old_index('author1_fname'), old_max_col + 1, 7): #searches through column headers
-                    if old_sheet.cell(row, c).value or old_sheet.cell(row, c + 1).value or old_sheet.cell(row, c + 2).value or old_sheet.cell(row, c + 3).value or old_sheet.cell(row, c + 4).value or old_sheet.cell(row, c + 5).value or old_sheet.cell(row, c + 6).value:
-                        a_count += 1                                            #updates a_count
-                    else:
-                        break
-
-                fill(new_index('total_author_count'), a_count)
-            except:
-                warning_popup("An error has occured with the 'total_author_count' column, the excel may be incomplete.")
-
+            copy('total_author_count', 'total_author_count')
+            
+            # faculty_author_count
+            copy('faculty_author_count', 'faculty_author_count')
+            
             # institution_name
-            try:
-                fill(new_index('institution_name'), 'Missouri University of Science and Technology')
-            except:
-                warning_popup("Could not find 'institution_name' column in new excel.")
-
+            fill('institution_name', 'Missouri University of Science and Technology')
+            
+            # authorized_name
+            copy('authorized_name', 'authorized_name')
+            
             # abstract
-            try:
-                copy(new_index('abstract'), old_index('abstract'))
-            except TypeError:
-                if row == 2:
-                    warning_popup("Couldn't transfer 'abstract' column. The column may not exist.")
-
+            copy('abstract', 'abstract')
+            
+            # department1
+            copy('department1', 'department1')
+            
+            # department2
+            copy('department2', 'department2')
+            
+            # department3
+            copy('department3', 'department3')
+            
+            # department4
+            copy('department4', 'department4')
+            
             # Funding Number & Funding Sponsor
             try:
-                f_num = old_sheet.cell(row, old_index('Funding Number')).value # Changing to grant?
-                f_spon = old_sheet.cell(row, old_index('Funding Sponsor')).value # Changing to fundref?
+                f_num = old_sheet.cell(row, get_old_index('Funding Number')).value # Changing to grant?
+                f_spon = old_sheet.cell(row, get_old_index('Funding Sponsor')).value # Changing to fundref?
                 output = ''
 
                 if f_spon != None:
@@ -533,18 +450,14 @@ def open_harvesting():
                     else:
                         output = str(f_spon)
 
-                fill(new_index('comments'), output)
+                fill('comments', output)
             except:
                 if row == 2:
-                    warning_popup("Couldn't transfer 'Funding Number' and 'Funding Sponsor' columns. The columns may not exist or have an error.")
+                    warning_popup("Couldn't transfer 'Funding Number' and 'Funding Sponsor' columns.")
 
             # keywords
-            try:
-                copy(new_index('keywords'), old_index('keywords'))
-            except TypeError:
-                if row == 2:
-                    warning_popup("Couldn't transfer 'keywords' column. The column may not exist.")
-
+            copy('keywords', 'keywords')
+            
             # isbn format function
             try:
                 def format_isbn(val_in):                            #format the number like ###-#########-#
@@ -565,27 +478,27 @@ def open_harvesting():
 
             # isbn
             try:
-                if old_sheet.cell(row, old_index('isbn')).value: #check for value
-                    val_in = str(old_sheet.cell(row, old_index('isbn')).value) #get value
+                if old_sheet.cell(row, get_old_index('isbn')).value: #check for value
+                    val_in = str(old_sheet.cell(row, get_old_index('isbn')).value) #get value
                     if ',' in val_in: #there are two numbers in the value seperated by a comma
                         for index in range(len(val_in)):   
                             if ',' in val_in[index]: #find the comma
                                 first_num = str(val_in[:index]) #find the first number
                                 second_num = str(val_in[index + 1:]) #find the second number
                                 if first_num[:3] == "978" and second_num[:3] == "978": #numbers must start with 978
-                                    fill(new_index('isbn'), str(first_num) + ";" + str(second_num)) #output to cell
+                                    fill('isbn', str(first_num) + ";" + str(second_num)) #output to cell
                                     break
                                 else: #at least one number doesn't start with 978, find which one is okay if any
                                     if first_num[:3] == "978": 
-                                        fill(new_index('isbn'), format_isbn(first_num))#output to cell
+                                        fill('isbn', format_isbn(first_num))#output to cell
                                     if second_num[:3] == "978":
-                                        fill(new_index('isbn'), format_isbn(second_num)) #output to cell
+                                        fill('isbn', format_isbn(second_num)) #output to cell
                     else: #there is one number in the value
                         if val_in[:3] == "978": #number must start with 978
-                            fill(new_index('isbn'), format_isbn(val_in)) #output to cell
+                            fill('isbn', format_isbn(val_in)) #output to cell
             except TypeError:
                 if row == 2:
-                    warning_popup("Couldn't transfer 'isbn' column. The column may not exist.")
+                    warning_popup("Couldn't transfer 'isbn' column.")
             except:
                 warning_popup("Couldn't transfer 'isbn' column. An error in the code has occured in row " + row + ".")
 
@@ -594,16 +507,16 @@ def open_harvesting():
                 e_ISSN = False
                 issn = False
 
-                if old_sheet.cell(row, old_index('e-ISSN')).value:
-                    val_in = old_sheet.cell(row, old_index('e-ISSN')).value
+                if old_sheet.cell(row, get_old_index('e-ISSN')).value:
+                    val_in = old_sheet.cell(row, get_old_index('e-ISSN')).value
                     string = str(val_in).zfill(8)                       #add missing leading 0s
                     upper = string[:4]                                  #get first 4 numbers
                     lower = string[4:]                                  #get last 4 numbers
                     val_out = upper + "-" + lower                       #format output ####-####
                     e_ISSN = True
 
-                if old_sheet.cell(row, old_index('issn')).value:
-                    val_in2 = old_sheet.cell(row, old_index('issn')).value
+                if old_sheet.cell(row, get_old_index('issn')).value:
+                    val_in2 = old_sheet.cell(row, get_old_index('issn')).value
                     string2 = str(val_in2).zfill(8)                     #add missing leading 0s
                     upper2 = string2[:4]                                #get first 4 numbers
                     lower2 = string2[4:]                                #get last 4 numbers
@@ -621,75 +534,80 @@ def open_harvesting():
                     if issn:
                         output = val_out2                               #outputs 2nd issn
 
-                fill(new_index('issn'), output)      #output to cell
+                fill('issn', output)      #output to cell
             except TypeError:
                 if row == 2:
-                    warning_popup("Couldn't transfer 'isbn' column. The column may not exist.")
+                    warning_popup("Couldn't transfer 'isbn' column.")
             except:
                 warning_popup("Couldn't transfer 'isbn' column. An error in the code has occured in row " + row + ".")
 
 
             # document_type
-            try:
-                copy(new_index('document_type'), old_index('document_type'))
-            except TypeError:
-                if row == 2:
-                    warning_popup("Couldn't transfer 'document_type' column. The column may not exist.")
-
-            if 'conference' in str(new_sheet.cell(row, new_index('document_type')).value):
-                fill(new_index('document_type'), 'article_conference_proceedings')
+            copy('document_type', 'document_type')
+            
+            if 'conference' in str(new_sheet.cell(row, get_new_index('document_type')).value):
+                fill('document_type', 'article_conference_proceedings')
 
             # document_version
-            try:
-                fill(new_index('document_version'), 'Citation')
-            except:
-                warning_popup("Could not find 'document_version' column in new excel.")
-
+            fill('document_version', 'Citation')
+            
             # file_type
-            try:
-                fill(new_index('file_type'), 'text')
-            except:
-                warning_popup("Could not find 'file_type' column in new excel.")
+            fill('file_type', 'text')
             
             # language_iso
-            try:
-                fill(new_index('language_iso'), 'English')
-            except:
-                warning_popup("Could not find 'language_iso' column in new excel.")
+            fill('language_iso', 'English')
             
             # language2
-            try:
-                copy(new_index('language2'), old_index('language2'))
-            except TypeError:
-                if row == 2:
-                    warning_popup("Couldn't transfer 'language2' column. The column may not exist.")
-
+            copy('language2', 'language2')
+            
             # rights
             try:
-                fill(new_index('rights'), '© 2021 , All rights reserved.')
+                rights = '© 2021 , All rights reserved.'
+                #Loop through pathways
+                for num in range(1, pathway_count + 1):
+                    #Check if published
+                    if old_sheet.cell(row, get_old_index(f'Pathway {num}: Version')).value == "Published Version":
+                        if old_sheet.cell(row, get_old_index(f'Pathway {num}: Copyright Owners')).value:
+                            copyright_oweners = old_sheet.cell(row, get_old_index(f'Pathway {num}: Copyright Owners')).value
+                            rights = '© 2021 ' + str(copyright_oweners) + ', All rights reserved.'
+                        break
+                fill('rights', rights)
             except:
-                warning_popup("Could not find 'rights' column in new excel.")
+                warning_popup("Could transfer 'rights' column.")
+
+            # distribution_license 
+            try:
+                #Loop through pathways
+                for num in range(1, pathway_count + 1):
+                    #Check if published
+                    if old_sheet.cell(row, get_old_index(f'Pathway {num}: Version')).value == "Published Version":
+                        if old_sheet.cell(row, get_old_index(f'Pathway {num}: License')).value:
+                            #Get info from old sheet
+                            license_tag = old_sheet.cell(row, get_old_index(f'Pathway {num}: License')).value[3:].lower().split()
+                            if len(license_tag) == 1:
+                                license_tag.append("4")
+                            license_link = "http://creativecommons.org/licenses/" + str(license_tag[0]) + "/" + str(license_tag[1][0]) + ".0/"
+                            fill('distribution_license', license_link)
+                        break
+            except:
+                warning_popup("Could transfer 'distribution_license' column.")
             
             # publication_date
+            copy('publication_date', 'publication_date')
+            
             try:
-                copy(new_index('publication_date'), old_index('publication_date'))
-            except TypeError:
-                if row == 2:
-                    warning_popup("Couldn't transfer 'publication_date' column. The column may not exist.")
-
-            try:
-                if new_sheet.cell(row, new_index('publication_date')).value:
-                    date = str(new_sheet.cell(row, new_index('publication_date')).value)
+                if new_sheet.cell(row, get_new_index('publication_date')).value:
+                    date = str(new_sheet.cell(row, get_new_index('publication_date')).value)
                     if len(date) > 10:
                         date = date[:len(date) - 9] #gets rid of time in the format
-                        fill(new_index('publication_date'), date)
+                        fill('publication_date', date)
             except:
                 print("")
 
             # custom_publication_date
             try:
-                if new_sheet.cell(row, new_index('publication_date')).value:
-                    date = str(new_sheet.cell(row, new_index('publication_date')).value)
+                if new_sheet.cell(row, get_new_index('publication_date')).value:
+                    date = str(new_sheet.cell(row, get_new_index('publication_date')).value)
                     date = date[:10] #gets rid of time in the format
 
                     #WORKS WHEN FORMAT IS "2020-02-01 00:00:00"
@@ -706,70 +624,70 @@ def open_harvesting():
                     output = day + ' ' + month + ' ' + year
 
                     # Output
-                    fill(new_index('custom_publication_date'), output)
+                    fill('custom_publication_date', output)
             except:
                 print ("Unusual formatting in 'publication_date' column")
 
+            # publisher
+            copy('publisher', 'publisher')
+            
             # volnum
-            try:
-                copy(new_index('volnum'), old_index('volnum'))
-            except TypeError:
-                if row == 2:
-                    warning_popup("Couldn't transfer 'volnum' column. The column may not exist.")
-
+            copy('volnum', 'volnum')
+            
             # issnum
-            try:
-                copy(new_index('issnum'), old_index('issnum'))
-            except TypeError:
-                if row == 2:
-                    warning_popup("Couldn't transfer 'issnum' column. The column may not exist.")
-
+            copy('issnum', 'issnum')
+            
             # articlenum
-            try:
-                copy(new_index('articlenum'), old_index('articlenum'))
-            except TypeError:
-                if row == 2:
-                    warning_popup("Couldn't transfer 'articlenum' column. The column may not exist.")
-
+            copy('articlenum', 'articlenum')
+            
             # fpage
-            try:
-                copy(new_index('fpage'), old_index('fpage'))
-            except TypeError:
-                if row == 2:
-                    warning_popup("Couldn't transfer 'fpage' column. The column may not exist.")
-
+            copy('fpage', 'fpage')
+            
             # lpage
-            try:
-                copy(new_index('lpage'), old_index('lpage'))
-            except TypeError:
-                if row == 2:
-                    warning_popup("Couldn't transfer 'lpage' column. The column may not exist.")
-
+            copy('lpage', 'lpage')
+            
             # pubmedid
+            copy('pubmedid', 'pubmedid')
+            
+            # embargo_date
             try:
-                copy(new_index('pubmedid'), old_index('pubmedid'))
+                #Loop through pathways
+                for num in range(1, pathway_count + 1):
+                    #Check if published
+                    if old_sheet.cell(row, get_old_index(f'Pathway {num}: Version')).value == "Published Version":
+                        #Get info from old sheet
+                        embargo_offset = old_sheet.cell(row, get_old_index(f'Pathway {num}: Embargo')).value.split()
+                        pub_date = old_sheet.cell(row, get_old_index('publication_date')).value
+                        
+                        #Embargo date is the same as publisher date
+                        if embargo_offset[0] == "No":
+                            fill('embargo_date', str(pub_date))
+                        
+                        #Embargo date is offset from the publisher date by an amount of months
+                        elif embargo_offset[1] == "Months":
+                            #Add embargo offset to the published date to get the embargo date
+                            pub_date = pub_date.split("-")
+                            embargo_date = datetime.date(int(pub_date[0]), int(pub_date[1]), int(pub_date[2])) + relativedelta(months = int(embargo_offset[0]))
+                            fill('embargo_date', str(embargo_date))
+                        break
             except TypeError:
                 if row == 2:
-                    warning_popup("Couldn't transfer 'pubmedid' column. The column may not exist.")
-                try:
-                    copy(new_index('pubmedid'), old_index('PubMed ID'))
-                except TypeError:
-                    if row == 2:
-                        warning_popup("Couldn't transfer 'PubMed ID' column either. The column may not exist.")
+                    warning_popup("Couldn't transfer 'embargo_date' column.")
 
             # primary_document_attached
-            fill(new_index('primary_document_attached'), 'no')
+            fill('primary_document_attached', 'no')
 
             # copy author information
             try:
-                for num in range(1, a_count + 1):               #copy author information
-                    copy(new_index(f'author{num}_fname'), old_index(f'author{num}_fname'))
-                    copy(new_index(f'author{num}_mname'), old_index(f'author{num}_mname'))
-                    copy(new_index(f'author{num}_lname'), old_index(f'author{num}_lname'))
-                    copy(new_index(f'author{num}_suffix'), old_index(f'author{num}_suffix'))
-                    copy(new_index(f'author{num}_email'), old_index(f'author{num}_email'))
-                    copy(new_index(f'author{num}_institution'), old_index(f'author{num}_institution'))
-                    copy(new_index(f'author{num}_is_corporate'), old_index(f'author{num}_is_corporate'))
+                a_count = old_sheet.cell(row, get_old_index('total_author_count')).value
+                for num in range(1, a_count + 1):
+                    copy(f'author{num}_fname', f'author{num}_fname')
+                    copy(f'author{num}_mname', f'author{num}_mname')
+                    copy(f'author{num}_lname', f'author{num}_lname')
+                    copy(f'author{num}_suffix', f'author{num}_suffix')
+                    copy(f'author{num}_email', f'author{num}_email')
+                    copy(f'author{num}_institution', f'author{num}_institution')
+                    copy(f'author{num}_is_corporate', f'author{num}_is_corporate')
             except:
                 warning_popup("An error occured while copying author information. Excel may be incomplete.")
 
@@ -784,8 +702,8 @@ def open_harvesting():
 
         try:
             for row in range(2, new_max_row):
-                title = new_sheet.cell(row, new_index('title')).value
-                fill(new_index('title'), manual_upper(title))
+                title = new_sheet.cell(row, get_new_index('title')).value
+                fill('title', title.title())
         except:
             warning_popup("An error occured while fixing uppercase titles. Excel may be incomplete.")
 
@@ -794,7 +712,7 @@ def open_harvesting():
 
         try:
             for row in range(2, new_max_row):
-                fill(new_index('title'), replace_sub_sup(new_sheet.cell(row, new_index('title')).value))
+                fill('title', replace_sub_sup(new_sheet.cell(row, get_new_index('title')).value))
         except:
             warning_popup("An error occured while fixing subscripts and superscripts. Excel may be incomplete.")
 
@@ -804,64 +722,29 @@ def open_harvesting():
         try:
             for row in range(2, new_max_row):
                 # Fix issnum column
-                col_value = str(new_sheet.cell(row, new_index('issnum')).value)
+                col_value = str(new_sheet.cell(row, get_new_index('issnum')).value)
+                print(col_value)
                 if col_value:                                                   #if a value exists
                     if '00:00:00' in col_value:                                 #change date to number
-                        fill(new_index('issnum'), date_to_num(str(col_value)))
+                        fill('issnum', date_to_num(str(col_value)))
                     elif '-' in col_value:                                      #get rid of dash
-                        fill(new_index('issnum'), remove_dash(str(col_value)))
+                        fill('issnum', str(col_value).replace("-", " thru "))
 
-                    if 'a' in col_value or 'e' in col_value or 'i' in col_value or 'o' in col_value or 'u' in col_value or 'y' in col_value: #get rid of words
-                        fill(new_index('issnum'), '')
+                    if col_value.isalpha(): #get rid of words
+                        fill('issnum', '')
 
                 # Fix volnum column
-                col_value = str(new_sheet.cell(row, new_index('volnum')).value)
+                col_value = str(new_sheet.cell(row, get_new_index('volnum')).value)
                 if col_value:                                                   #if a value exists
                     if '00:00:00' in col_value:                                 #change date to number
-                        fill(new_index('volnum'), date_to_num(str(col_value)))
+                        fill('volnum', date_to_num(str(col_value)))
                     elif '-' in col_value:                                      #get rid of dash
-                        fill(new_index('volnum'), remove_dash(str(col_value)))
+                        fill('volnum', str(col_value).replace("-", " thru "))
 
                     if 'a' in col_value or 'e' in col_value or 'i' in col_value or 'o' in col_value or 'u' in col_value or 'y' in col_value: #get rid of words
-                        fill(new_index('volnum'), '')
+                        fill('volnum', '')
         except:
             warning_popup("An error occured while fixing date formats. Excel may be incomplete.")
-
-        # Prepare for Author_Split
-        update_progress(7, "Harvesting files...") # Saving
-
-        def author_split_information(row):
-            upper = new_sheet.cell(row, new_index("total_author_count")).value
-
-            for num in range(1, upper + 1):
-
-                # gather name information
-                last_name = new_sheet.cell(row, new_index("author" + str(num) + "_lname")).value
-                first_name = new_sheet.cell(row, new_index("author" + str(num) + "_fname")).value
-
-                if new_sheet.cell(row, new_index("author" + str(num) + "_mname")).value: #w/ middle name
-                    middle_name = new_sheet.cell(row, new_index("author" + str(num) + "_mname")).value
-                    middle_initial = middle_name[0:1]
-
-                    if num > 1:
-                        author_split = str(new_sheet.cell(row, new_index("author")).value) + " and " + str(last_name) + ", " + str(first_name) + " " + str(middle_initial) + "."
-                    else:
-                        author_split = str(last_name) + ", " + str(first_name) + " " + str(middle_initial) + "."
-                else: #w/o middle name
-                    if num > 1:
-                        author_split = str(new_sheet.cell(row, new_index("author")).value) + " and " + str(last_name) + ", " + str(first_name)
-                    else:
-                        author_split = str(last_name) + ", " + str(first_name)
-
-                try:
-                    # author_split
-                    fill(new_index("author"), str(author_split))
-                except TypeError:
-                    if row == 2:
-                        warning_popup("Couldn't transfer 'author' column. The column may not exist.")
-
-        for row in range(2, new_max_row + 1):
-            author_split_information(row)
 
         # Format Columns
         update_progress(8, "Harvesting files...") # Adjusting column width
@@ -886,8 +769,11 @@ def open_harvesting():
         update_progress(9, "Harvesting files...") # Saving
 
         try:
-            new_path = str(file_name)[:len(file_name) - 5] + '_ReadyForAuthorSplit.xlsx'
+            new_path = str(file_name)[:len(file_name) - 18] + '_Complete.xlsx'
             new_book.save(new_path)
+
+            saved_name = new_path.split('/')
+            info_popup("'" + str(saved_name[-1]) + "' has been saved.")
 
             update_progress(10, "Excel Created")
         except:
@@ -896,12 +782,12 @@ def open_harvesting():
     # Start Button Function
     def start():
         # Run program and update progress bar
-        try:
-            main(harvesting.filename)
-        except PermissionError:
-            error_popup("Could not save processed excel. The excel file that needs to be saved over is currently open. Close the excel file and hit the 'start' button again.")
-        except:
-            error_popup("There was an unknown error, the file could not be processed.")
+        #try:
+        main(harvesting.filename)
+        #except PermissionError:
+        #    error_popup("Could not save processed excel. The excel file that needs to be saved over is currently open. Close the excel file and hit the 'start' button again.")
+        #except:
+        #    error_popup("There was an unknown error, the file could not be processed.")
 
     # Create a button
     browse_button = Button(frame, text = "Browse", command = lambda : browse(), bg = '#78BE20', fg = '#003B49', font = 'tungsten 12 bold', borderwidth = 1, relief = "ridge")
