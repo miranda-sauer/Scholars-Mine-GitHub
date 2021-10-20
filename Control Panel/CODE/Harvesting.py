@@ -269,7 +269,7 @@ def open_harvesting():
         # Add Column Headers (before authors)
         new_col = 1
         for header in headers:
-            new_sheet.cell(1,  new_col).value = header
+            new_sheet.cell(1, new_col).value = header
             new_col += 1
 
         # Determine how many columns are in the sheet that is being read from
@@ -456,50 +456,40 @@ def open_harvesting():
 
             # keywords
             copy('keywords', 'keywords')
-            
-            # isbn format function
-            try:
-                def format_isbn(val_in):                            #format the number like ###-#########-#
-                    if len(val_in) > 12 & len(val_in) < 16:         #between 13 and 15
-                        if "[" and "]" in val_in:
-                            string = val_in[2:15]                   #get number without [' ']
-                            upper = string[:3]                      #get first 3 numbers
-                            mid = string[3:12]                      #get middle 9 numbers
-                            lower = string[12:]                     #get last number
-                        else:
-                            upper = str(val_in[:3])                 #get first 3 numbers
-                            mid = str(val_in[3:12])                 #get middle 9 numbers
-                            lower = str(val_in[12:])                #get last number
-                        output = upper + '-' + mid + '-' + lower    #format output
-                        return output
-            except:
-                warning_popup("Couldn't format isbn number column in row " + row + ". The isbn column may be incomplete.")
 
             # isbn
             try:
-                if old_sheet.cell(row, get_old_index('isbn')).value: #check for value
-                    val_in = str(old_sheet.cell(row, get_old_index('isbn')).value) #get value
-                    if ',' in val_in: #there are two numbers in the value seperated by a comma
-                        for index in range(len(val_in)):   
-                            if ',' in val_in[index]: #find the comma
-                                first_num = str(val_in[:index]) #find the first number
-                                second_num = str(val_in[index + 1:]) #find the second number
-                                if first_num[:3] == "978" and second_num[:3] == "978": #numbers must start with 978
-                                    fill('isbn', str(first_num) + ";" + str(second_num)) #output to cell
-                                    break
-                                else: #at least one number doesn't start with 978, find which one is okay if any
-                                    if first_num[:3] == "978": 
-                                        fill('isbn', format_isbn(first_num))#output to cell
-                                    if second_num[:3] == "978":
-                                        fill('isbn', format_isbn(second_num)) #output to cell
-                    else: #there is one number in the value
-                        if val_in[:3] == "978": #number must start with 978
-                            fill('isbn', format_isbn(val_in)) #output to cell
+                isbn = str(old_sheet.cell(row, get_old_index('isbn')).value) #get value
+
+                #Get rid of spaces and brackets
+                isbn = isbn.replace("[", "")
+                isbn = isbn.replace("]", "")
+                isbn = isbn.replace(" ", "")
+
+                #make a list
+                isbn_list = isbn.split(",")
+
+                #validate number and format (must have 978 in the beginning)
+                index = 0
+                size = len(isbn_list)
+                while (index < size):
+                    if isbn_list[index].find("978", 0, 3) == -1:
+                        isbn_list.remove(isbn_list[index])
+                        size -= 1
+                    elif len(isbn_list[index]) != 13:
+                        isbn_list.remove(isbn_list[index])
+                        size -= 1
+                    else:
+                        isbn_list[index] = str(isbn_list[index][:3]) + '-' + str(isbn_list[index][3:12]) + '-' + str(isbn_list[index][12:])
+                        index += 1
+
+                #fill the list with the numbers seperated by a semicolon if there are multiple
+                fill('isbn', ";".join(isbn_list)) #output to cell
             except TypeError:
                 if row == 2:
                     warning_popup("Couldn't transfer 'isbn' column.")
             except:
-                warning_popup("Couldn't transfer 'isbn' column. An error in the code has occured in row " + row + ".")
+                warning_popup("Couldn't transfer 'isbn' column. An error in the code has occured in row " + str(row) + ".")
 
             # issn
             try:
@@ -538,7 +528,7 @@ def open_harvesting():
                 if row == 2:
                     warning_popup("Couldn't transfer 'isbn' column.")
             except:
-                warning_popup("Couldn't transfer 'isbn' column. An error in the code has occured in row " + row + ".")
+                warning_popup("Couldn't transfer 'isbn' column. An error in the code has occured in row " + str(row) + ".")
 
 
             # document_type
@@ -768,7 +758,7 @@ def open_harvesting():
         update_progress(9, "Harvesting files...") # Saving
 
         try:
-            new_path = str(file_name)[:len(file_name) - 18] + '_Complete.xlsx'
+            new_path = str(file_name)[:len(file_name) - 18] + '_Completed.xlsx'
             new_book.save(new_path)
 
             saved_name = new_path.split('/')
