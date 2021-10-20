@@ -40,27 +40,26 @@ def date_to_num(input):
 # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * #
 
 def replace_sub_sup(title):
-    while('</sub>' in title):                           #if there is a sub to replace...
-        index = 0                                           #start at the beginning of the string
-        while(index < len(title)):                         #while the index is in the string
-            if '<sub>' in title[index:index + 5]:               #find were '<sub>' is in the string
-                title = title[0:index] + title[index + 5:]          #get rid of '<sub>' in the string
-                while(title[index] != '<'):                         #while the index isn't '<'
-                    title = str(title[0:index]) + str(char_to_sub(title[index])) + str(title[index + 1:])  #change char into subscript
-                    index += 1                                                              #increment the index
-                title = title[0:index] + title[index + 6:]          #get rid of '</sub>' in the string
-            index += 1                                          #increment the index
+    while('</sub>' in title):
+        start = title.find('<sub>')
+        end = title.find('</sub>')
+        title = title.replace('<sub>', "")
+        while start != end:
+            title = str(title[0:start]) + str(char_to_sub(title[start])) + str(title[start + 1:])
+            start+=1
+            end = title.find('</sub>')
+        title = title.replace('</sub>', "")
 
-    while('</sup>' in title):                           #if there is a sup to replace...
-        index = 0                                           #start at the beginning of the string
-        while(index < len(title)):                         #while the index is in the string
-            if '<sup>' in title[index:index + 5]:               #find were '<sup>' is in the string
-                title = title[0:index] + title[index + 5:]          #get rid of '<sup>' in the string
-                while(title[index] != '<'):                         #while the index isn't '<'
-                    title = str(title[0:index]) + str(char_to_sup(title[index])) + str(title[index + 1:])  #change char into subscript
-                    index += 1                                                              #increment the index
-                title = title[0:index] + title[index + 6:]          #get rid of '</sup>' in the string
-            index += 1                                          #increment the index
+    while('</sup>' in title):
+        start = title.find('<sup>')
+        end = title.find('</sup>')
+        title = title.replace('<sup>', "")
+        while start != end:
+            title = str(title[0:start]) + str(char_to_sup(title[start])) + str(title[start + 1:])
+            start+=1
+            end = title.find('</sup>')
+        title = title.replace('</sup>', "")
+    
     return title
 
 
