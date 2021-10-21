@@ -285,7 +285,6 @@ def open_harvesting():
         index = 0
         for letter in last_cell:
             if letter == '_':
-                print(last_cell[:index])
                 author_count = int(last_cell[:index])
                 break
             index += 1
@@ -461,75 +460,55 @@ def open_harvesting():
             try:
                 isbn = str(old_sheet.cell(row, get_old_index('isbn')).value) #get value
 
-                #Get rid of spaces and brackets
-                isbn = isbn.replace("[", "")
-                isbn = isbn.replace("]", "")
-                isbn = isbn.replace(" ", "")
+                if isbn != None:
+                    #Get rid of spaces and brackets
+                    isbn = isbn.replace("[", "")
+                    isbn = isbn.replace("]", "")
+                    isbn = isbn.replace(" ", "")
 
-                #make a list
-                isbn_list = isbn.split(",")
+                    #make a list
+                    isbn_list = isbn.split(",")
 
-                #validate number and format (must have 978 in the beginning)
-                index = 0
-                size = len(isbn_list)
-                while (index < size):
-                    if isbn_list[index].find("978", 0, 3) == -1:
-                        isbn_list.remove(isbn_list[index])
-                        size -= 1
-                    elif len(isbn_list[index]) != 13:
-                        isbn_list.remove(isbn_list[index])
-                        size -= 1
-                    else:
-                        isbn_list[index] = str(isbn_list[index][:3]) + '-' + str(isbn_list[index][3:12]) + '-' + str(isbn_list[index][12:])
-                        index += 1
+                    #validate number and format (must have 978 in the beginning)
+                    index = 0
+                    size = len(isbn_list)
+                    while (index < size):
+                        if isbn_list[index].find("978", 0, 3) == -1:
+                            isbn_list.remove(isbn_list[index])
+                            size -= 1
+                        elif len(isbn_list[index]) != 13:
+                            isbn_list.remove(isbn_list[index])
+                            size -= 1
+                        else:
+                            isbn_list[index] = str(isbn_list[index][:3]) + '-' + str(isbn_list[index][3:12]) + '-' + str(isbn_list[index][12:])
+                            index += 1
 
-                #fill the list with the numbers seperated by a semicolon if there are multiple
-                fill('isbn', ";".join(isbn_list)) #output to cell
-            except TypeError:
+                    #fill the list with the numbers seperated by a semicolon if there are multiple
+                    fill('isbn', ";".join(isbn_list)) #output to cell
+            except:
                 if row == 2:
                     warning_popup("Couldn't transfer 'isbn' column.")
-            except:
-                warning_popup("Couldn't transfer 'isbn' column. An error in the code has occured in row " + str(row) + ".")
 
             # issn
             try:
-                e_ISSN = False
-                issn = False
+                e_ISSN = old_sheet.cell(row, get_old_index('e-ISSN')).value
+                issn = old_sheet.cell(row, get_old_index('issn')).value
+                issn_values = []
+                
+                if e_ISSN != None:
+                    issn_values.append(e_ISSN)
+                if issn != None:
+                    issn_values.append(issn)
 
-                if old_sheet.cell(row, get_old_index('e-ISSN')).value:
-                    val_in = old_sheet.cell(row, get_old_index('e-ISSN')).value
-                    string = str(val_in).zfill(8)                       #add missing leading 0s
-                    upper = string[:4]                                  #get first 4 numbers
-                    lower = string[4:]                                  #get last 4 numbers
-                    val_out = upper + "-" + lower                       #format output ####-####
-                    e_ISSN = True
+                for index in range(len(issn_values)):
+                    issn_values[index] = str(issn_values[index]).zfill(8) #add missing leading 0s
+                    parts = [issn_values[index][:4], issn_values[index][4:]] #[first 4 numbers, last 4 numbers]
+                    issn_values[index] = "-".join(parts) #format output ####-####
 
-                if old_sheet.cell(row, get_old_index('issn')).value:
-                    val_in2 = old_sheet.cell(row, get_old_index('issn')).value
-                    string2 = str(val_in2).zfill(8)                     #add missing leading 0s
-                    upper2 = string2[:4]                                #get first 4 numbers
-                    lower2 = string2[4:]                                #get last 4 numbers
-                    val_out2 = upper2 + "-" + lower2                    #format output ####-####
-                    issn = True
-
-                output = ''
-
-                if issn and e_ISSN:
-                    output = val_out2 + '; ' + val_out                  #outputs both issn
-                else:
-                    if e_ISSN:
-                        output = val_out                                #outputs 1st issn
-
-                    if issn:
-                        output = val_out2                               #outputs 2nd issn
-
-                fill('issn', output)      #output to cell
+                fill('issn', "; ".join(issn_values))      #output to cell
             except TypeError:
                 if row == 2:
-                    warning_popup("Couldn't transfer 'isbn' column.")
-            except:
-                warning_popup("Couldn't transfer 'isbn' column. An error in the code has occured in row " + str(row) + ".")
-
+                    warning_popup("Couldn't transfer 'issn' column.")
 
             # document_type
             copy('document_type', 'document_type')
@@ -562,7 +541,8 @@ def open_harvesting():
                         break
                 fill('rights', rights)
             except:
-                warning_popup("Could transfer 'rights' column.")
+                if row == 2:
+                    warning_popup("Could transfer 'rights' column.")
 
             # distribution_license 
             try:
@@ -615,7 +595,7 @@ def open_harvesting():
                     # Output
                     fill('custom_publication_date', output)
             except:
-                print ("Unusual formatting in 'publication_date' column")
+                print("Unusual formatting in 'publication_date' column")
 
             # publisher
             copy('publisher', 'publisher')
@@ -712,7 +692,6 @@ def open_harvesting():
             for row in range(2, new_max_row):
                 # Fix issnum column
                 col_value = str(new_sheet.cell(row, get_new_index('issnum')).value)
-                print(col_value)
                 if col_value:                                                   #if a value exists
                     if '00:00:00' in col_value:                                 #change date to number
                         fill('issnum', date_to_num(str(col_value)))
