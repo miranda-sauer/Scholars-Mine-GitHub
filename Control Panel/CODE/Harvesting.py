@@ -150,7 +150,7 @@ def open_harvesting():
     harvesting.title('Harvesting Program')
     harvesting_menu = Menu(harvesting) # Add menu bar
     harvesting.configure(bg = '#003B49', menu = harvesting_menu)
-    harvesting.iconbitmap('R:/storage/libarchive/b/1. Processing/8. Other Projects/Scholars-Mine-GitHub/Control Panel/CODE/S&T_Logo.ico')
+    harvesting.iconbitmap('R:/storage/libarchive/a/Scholars-Mine-GitHub/Control Panel/CODE/S&T_Logo.ico')
 
     # Center the window on the screen
     window_w = 400 # window width
@@ -166,11 +166,11 @@ def open_harvesting():
 
     #Create a menu item
     def header_command():
-        os.startfile('R:/storage/libarchive/b/1. Processing/8. Other Projects/Scholars-Mine-GitHub/Control Panel/Documentation/headers.txt')
+        os.startfile('R:/storage/libarchive/a/Scholars-Mine-GitHub/Control Panel/Documentation/headers.txt')
 
     #Create a menu item
     def open_help_documentation():
-        os.startfile('R:/storage/libarchive/b/1. Processing/8. Other Projects/Scholars-Mine-GitHub/Control Panel/Documentation/Harvesting Help.docx')
+        os.startfile('R:/storage/libarchive/a/Scholars-Mine-GitHub/Control Panel/Documentation/Harvesting Help.docx')
 
     # Create a menu on the menu bar
     file_menu = Menu(harvesting_menu, tearoff="off")
@@ -248,7 +248,7 @@ def open_harvesting():
         update_progress(0, 'Waiting for a file')
 
         # Open file
-        harvesting.filename = filedialog.askopenfilename(initialdir = 'R:/storage/libarchive/b/1. Processing/8. Other Projects/Excel Files', title = 'Select Input', filetypes = (('Excel Workbook', '*.xlsx'),))
+        harvesting.filename = filedialog.askopenfilename(initialdir = 'R:/storage/libarchive/a/Excel Files', title = 'Select Input', filetypes = (('Excel Workbook', '*.xlsx'),))
         if harvesting.filename == '':
             warning_popup('No file selected.')
             file_label.config(text = 'File: N/A')
@@ -278,7 +278,7 @@ def open_harvesting():
         new_sheet = new_book.active         #create worksheet
 
         #Read in column headers
-        f = open('R:/storage/libarchive/b/1. Processing/8. Other Projects/Scholars-Mine-GitHub/Control Panel/Documentation/headers.txt', 'r')
+        f = open('R:/storage/libarchive/a/Scholars-Mine-GitHub/Control Panel/Documentation/headers.txt', 'r')
         headers = f.read()
         f.close()
 

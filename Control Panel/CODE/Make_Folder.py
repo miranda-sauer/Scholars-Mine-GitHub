@@ -20,7 +20,7 @@ def open_make_folder():
     make_folder = Toplevel()
     make_folder.title("Make Folder Program")
     make_folder.configure(bg = '#003B49')
-    make_folder.iconbitmap('R:/storage/libarchive/a/zzz_Programs/Control Panel/CODE/S&T_Logo.ico')
+    make_folder.iconbitmap('R:/storage/libarchive/a/Scholars-Mine-GitHub/Control Panel/CODE/S&T_Logo.ico')
 
     # Center the window on the screen
     window_w = 400 # window width
@@ -49,7 +49,7 @@ def open_make_folder():
     def open_help():
         # Open word document
         try:
-            os.startfile("R:/storage/libarchive/a/zzz_Programs/Control Panel/Documentation/Make Folder Help.docx")
+            os.startfile("R:/storage/libarchive/a/Scholars-Mine-GitHub/Control Panel/Documentation/Make Folder Help.docx")
         except:
             error_popup("Could not open help file.")
 

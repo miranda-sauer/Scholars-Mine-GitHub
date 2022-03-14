@@ -25,7 +25,7 @@ def open_control_panel():
     root = Tk()
     root.title("Scholars' Mine Control Panel")
     root.configure(bg = '#003B49')
-    root.iconbitmap('R:/storage/libarchive/a/zzz_Programs/Control Panel/CODE/S&T_Logo.ico')
+    root.iconbitmap('R:/storage/libarchive/a/Scholars-Mine-GitHub/Control Panel/CODE/S&T_Logo.ico')
 
     # Center the window on the screen
     window_w = 618 # window width
@@ -43,7 +43,7 @@ def open_control_panel():
     def open_help():
         # Open word document
         try:
-            os.startfile("R:/storage/libarchive/a/zzz_Programs/Control Panel/Documentation/Control Panel Help.docx")
+            os.startfile("R:/storage/libarchive/a/Scholars-Mine-GitHub/Control Panel/Documentation/Control Panel Help.docx")
         except:
             error_popup("Could not open help file.")
 

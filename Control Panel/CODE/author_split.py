@@ -1,4 +1,4 @@
-# cd /d "R:\storage\libarchive\b\1. Processing\8. Other Projects\Scholars-Mine-GitHub\Stand Alone Author Split" 
+# cd /d "R:\storage\libarchive\a\Scholars-Mine-GitHub\Control Panel\CODE" 
 # python author_.py
 # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * #
 #           IMPORT                                                                #
@@ -33,7 +33,7 @@ rdsheet = None
 author_column = ''
 excelName = ''
 
-authority_database = sqlite3.connect('R:/storage/libarchive/a/zzz_Programs/faculty.db')
+authority_database = sqlite3.connect('R:/storage/libarchive/a/Scholars-Mine-GitHub/Control Panel/CODE/faculty-author-split-test.db')
 authority_cursor = authority_database.cursor()
 def regexp(expr, item):
     reg = re.compile(expr)
@@ -46,11 +46,11 @@ authority_database.create_function("REGEXP", 2, regexp)
 authorDict = {}
 rb = None
 
-# special_char = pickle.load(open('R:/storage/libarchive/b/1. Processing/8. Other Projects/Scholars-Mine-GitHub/Stand Alone Author Split/special_char.pickle','rb'))
-# extra_special_char = pickle.load(open('R:/storage/libarchive/b/1. Processing/8. Other Projects/Scholars-Mine-GitHub/Stand Alone Author Split/extra_special_char.pickle','rb'))
+# special_char = pickle.load(open('R:/storage/libarchive/a/Scholars-Mine-GitHub/Stand Alone Author Split/special_char.pickle','rb'))
+# extra_special_char = pickle.load(open('R:/storage/libarchive/a/Scholars-Mine-GitHub/Stand Alone Author Split/extra_special_char.pickle','rb'))
 
 # Read in Excel file
-excel_file = r"R:\storage\libarchive\b\1. Processing\8. Other Projects\Excel Files\Epting-new_format_harvest.xlsx"
+excel_file = r"R:\storage\libarchive\a\Excel Files\Epting-new_format_harvest.xlsx"
 with pd.ExcelFile( excel_file ) as excel_in:
     df = pd.read_excel( excel_in, excel_in.sheet_names[0], header=0, index_col=False )
 

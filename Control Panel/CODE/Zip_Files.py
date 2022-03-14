@@ -38,7 +38,7 @@ def open_zip_files():
     def open_help():
         # Open word document
         try:
-            os.startfile("R:/storage/libarchive/a/zzz_Programs/Control Panel/Documentation/Zip Files Help.docx")
+            os.startfile("R:/storage/libarchive/a/Scholars-Mine-GitHub/Control Panel/Documentation/Zip Files Help.docx")
         except:
             error_popup("Could not open help file.")
 
@@ -50,7 +50,7 @@ def open_zip_files():
     # Customize window
     Zip.title('Zip Files Program')
     Zip.configure(bg = '#003B49')
-    Zip.iconbitmap('R:/storage/libarchive/a/zzz_Programs/Control Panel/CODE/S&T_Logo.ico')
+    Zip.iconbitmap('R:/storage/libarchive/a/Scholars-Mine-GitHub/Control Panel/CODE/S&T_Logo.ico')
 
     # Place in window
     frame.pack(padx = 20, pady = 10)

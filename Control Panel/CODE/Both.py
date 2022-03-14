@@ -57,7 +57,7 @@ def open_both():
     # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * #
     # Open Help Documentation
     def open_help_documentation():
-        os.startfile('R:/storage/libarchive/a/zzz_Programs/Control Panel/Documentation/Excel Processing Help.pdf')
+        os.startfile('R:/storage/libarchive/a/Scholars-Mine-GitHub/Control Panel/Documentation/Excel Processing Help.pdf')
 
 
     # Error Message Popup
@@ -92,7 +92,7 @@ def open_both():
 
         # Open file
         global filenames
-        filenames = filedialog.askopenfilename(title = "Select Input", initialdir = "R:/storage/libarchive/b/1. Processing/8. Other Projects/Excel Files", filetypes = (("Excel Workbook", "*.xlsx"),), multiple = True)
+        filenames = filedialog.askopenfilename(title = "Select Input", initialdir = "R:/storage/libarchive/a/Excel Files", filetypes = (("Excel Workbook", "*.xlsx"),), multiple = True)
         if len(filenames) == 0:
             warning_popup("No file(s) selected.")
             file_label.config(text = "n/a")
@@ -126,7 +126,7 @@ def open_both():
         author_column = ''
         excelName = ''
 
-        authority_database = sqlite3.connect('R:/storage/libarchive/a/zzz_Programs/faculty.db')
+        authority_database = sqlite3.connect('R:/storage/libarchive/a/Scholars-Mine-GitHub/Control Panel/CODE/faculty-author-split-test.db')
         authority_cursor = authority_database.cursor()
         def regexp(expr, item):
             reg = re.compile(expr)
@@ -388,7 +388,7 @@ def open_both():
         new_sheet = new_book.active         #create worksheet
 
         #Read in column headers
-        f = open('R:/storage/libarchive/a/zzz_Programs/Control Panel/Documentation/headers.txt', 'r')
+        f = open('R:/storage/libarchive/a/Scholars-Mine-GitHub/Control Panel/Documentation/headers.txt', 'r')
         headers = f.read()
         f.close()
 
@@ -987,7 +987,7 @@ def open_both():
     # Customize window
     Both.title('Excel Processing Program')
     Both.configure(bg = '#003B49')
-    Both.iconbitmap('R:/storage/libarchive/a/zzz_Programs/Control Panel/CODE/S&T_Logo.ico')
+    Both.iconbitmap('R:/storage/libarchive/a/Scholars-Mine-GitHub/Control Panel/CODE/S&T_Logo.ico')
 
     # Place in window
     top_frame.pack(padx = 20, pady = 10)

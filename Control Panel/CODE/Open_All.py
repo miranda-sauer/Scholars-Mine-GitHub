@@ -22,7 +22,7 @@ def open_open_all():
     open_all = Toplevel()
     open_all.title("Open All Program")
     open_all.configure(bg = '#003B49')
-    open_all.iconbitmap('R:/storage/libarchive/a/zzz_Programs/Control Panel/CODE/S&T_Logo.ico')
+    open_all.iconbitmap('R:/storage/libarchive/a/Scholars-Mine-GitHub/Control Panel/CODE/S&T_Logo.ico')
 
     # Center the window on the screen
     window_w = 400 # window width
@@ -50,7 +50,7 @@ def open_open_all():
     def open_help():
         # Open word document
         try:
-            os.startfile("R:/storage/libarchive/a/zzz_Programs/Control Panel/Documentation/Open All Help.docx")
+            os.startfile("R:/storage/libarchive/a/Scholars-Mine-GitHub/Control Panel/Documentation/Open All Help.docx")
         except:
             error_popup("Could not open help file.")
 

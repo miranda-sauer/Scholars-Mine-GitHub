@@ -30,7 +30,7 @@ def open_author_split():
     author_split = Tk()
     author_split.title("Author Split Program")
     author_split.configure(bg = '#003B49')
-    author_split.iconbitmap('R:/storage/libarchive/b/1. Processing/8. Other Projects/Scholars-Mine-GitHub/Control Panel/CODE/S&T_Logo.ico')
+    author_split.iconbitmap('R:/storage/libarchive/a/Scholars-Mine-GitHub/Control Panel/CODE/S&T_Logo.ico')
 
     # Center the window on the screen
     window_w = 400 # window width
@@ -58,7 +58,7 @@ def open_author_split():
     def open_help():
         # Open word document
         try:
-            os.startfile("R:/storage/libarchive/b/1. Processing/8. Other Projects/Scholars-Mine-GitHub/Control Panel/Documentation/Author Split Help.docx")
+            os.startfile("R:/storage/libarchive/a/Scholars-Mine-GitHub/Control Panel/Documentation/Author Split Help.docx")
         except:
             error_popup("Could not open help file.")
 
@@ -101,7 +101,7 @@ def open_author_split():
         update_progress(0, "Waiting for a file")
 
         # Open file
-        author_split.filename = filedialog.askopenfilename(initialdir = "R:/storage/libarchive/b/1. Processing/8. Other Projects/Excel Files", title = "Select Input", filetypes = (("Excel Workbook", "*.xlsx"),))
+        author_split.filename = filedialog.askopenfilename(initialdir = "R:/storage/libarchive/a/Excel Files", title = "Select Input", filetypes = (("Excel Workbook", "*.xlsx"),))
         if author_split.filename == "":
             warning_popup("No file selected.")
             file_label.config(text = "File: N/A")
@@ -125,7 +125,7 @@ def open_author_split():
         author_column = ''
         excelName = ''
 
-        authority_database = sqlite3.connect('R:/storage/libarchive/b/1. Processing/8. Other Projects/Scholars-Mine-GitHub/Control Panel/CODE/faculty-author-split-test.db')
+        authority_database = sqlite3.connect('R:/storage/libarchive/a/Scholars-Mine-GitHub/Control Panel/CODE/faculty-author-split-test.db')
         authority_cursor = authority_database.cursor()
         def regexp(expr, item):
             reg = re.compile(expr)
