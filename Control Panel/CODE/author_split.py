@@ -33,7 +33,7 @@ rdsheet = None
 author_column = ''
 excelName = ''
 
-authority_database = sqlite3.connect('R:/storage/libarchive/b/1. Processing/8. Other Projects/Scholars-Mine-GitHub/Stand Alone Author Split/faculty-author-split-test.db')
+authority_database = sqlite3.connect('R:/storage/libarchive/a/zzz_Programs/faculty.db')
 authority_cursor = authority_database.cursor()
 def regexp(expr, item):
     reg = re.compile(expr)

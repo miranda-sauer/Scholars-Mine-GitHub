@@ -1,272 +1,382 @@
-# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * #
-#           IMPORT                                                                #
-# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * #
-import datetime
-from dateutil.relativedelta import relativedelta
-import sqlite3
-import time
-from openpyxl import Workbook
-from openpyxl import load_workbook
-from openpyxl.utils.cell import get_column_letter
-from openpyxl.styles import Alignment, PatternFill
-from openpyxl.styles.colors import Color
+# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * #
+#                                       Import                                      #
+# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * #
 from tkinter import *
 from tkinter import filedialog
 from tkinter import ttk
 from tkinter import messagebox
+from openpyxl.utils.cell import get_column_letter
+from openpyxl.styles import Alignment, PatternFill
+from openpyxl.styles.colors import Color
+from openpyxl import Workbook
+from openpyxl import load_workbook
+from datetime import datetime
+import openpyxl as xl
+import time
 import os
+import shutil
+import sqlite3
+import pickle
+import sys
+import pandas as pd
+import numpy as np
+from __init__ import fix_text
+_global = sys.modules[__name__] # Allows access to 'global' variables defined below
+from author_diacritics import ensure_encryption
+from dateutil.relativedelta import relativedelta
+import re
+from author_diacritics import ensure_encryption
+
+
+def open_both():
+    # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * #
+    #                      Variable Declaration and Initialization                      #
+    # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * #
+
+    Both = Toplevel() # Create window
+    top_frame = Frame(Both, bg = '#003B49') # Create a frame
+    help_button = Button(top_frame, text = "Help", command = lambda : open_help_documentation(), bg = '#78BE20', fg = '#003B49', font = 'tungsten 12 bold', borderwidth = 1, relief = "ridge") # Create a button
+    select_button = Button(top_frame, text = "Select File(s)", command = lambda : browse(), bg = '#78BE20', fg = '#003B49', font = 'tungsten 12 bold', borderwidth = 1, relief = "ridge") # Create a button
+
+    middle_frame = Frame(Both, bg = '#003B49') # Create a frame
+    label_canvas = Canvas(middle_frame, bg = '#003B49') # Create a canvas
+    canvas_frame = Frame(label_canvas, bg = '#003B49') # Create a frame
+    file_label = Label(canvas_frame, text = "n/a", bg = '#003B49', fg = 'white', font = 'tungsten 12 bold', anchor = 'w', justify = 'left') # Create a label
+    scroll_bar = ttk.Scrollbar(middle_frame, orient = VERTICAL, command = label_canvas.yview)
+
+    bottom_frame = Frame(Both, bg = '#003B49') # Create a frame
+    progress = ttk.Progressbar(bottom_frame, orient = HORIZONTAL, length = 400, mode = 'determinate') # Create Progress Bar
+    start_button = Button(bottom_frame, text = "Start", command = lambda : start(), bg = '#78BE20', fg = '#003B49', font = 'tungsten 12 bold', borderwidth = 1, relief = "ridge") # Create a button
+
+    filenames = tuple()
 
 
 
-# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * #
-#           CHANGE DATE TO NUM                                                      #
-# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * #
-
-def date_to_num(input):
-    input = input.split() #separate date from timestamp ['2021-03-04','00:00:00']
-    input = input[0].split('-', 1) #separate year from month&day ['2021', '03-04']
-    input = input[1].split('-') #separte month and day ['03, 04']
-
-    #cast to and int and then back to a string to get rid of leading 0's
-    if int(input[0]) < int(input[1]):
-        return str(int(input[0])) + ' thru ' + str(int(input[1]))
-    else:
-        return str(int(input[1])) + ' thru ' + str(int(input[0]))
-
-
-
-# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * #
-#           FIX SUBSCRIPT AND SUPERSCRIPT                                           #
-# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * #
-
-def replace_sub_sup(title):
-    while('</sub>' in title):
-        start = title.find('<sub>')
-        end = title.find('</sub>')
-        title = title.replace('<sub>', '')
-        while start != end:
-            title = str(title[0:start]) + str(char_to_sub(title[start])) + str(title[start + 1:])
-            start+=1
-            end = title.find('</sub>')
-        title = title.replace('</sub>', '')
-
-    while('</sup>' in title):
-        start = title.find('<sup>')
-        end = title.find('</sup>')
-        title = title.replace('<sup>', '')
-        while start != end:
-            title = str(title[0:start]) + str(char_to_sup(title[start])) + str(title[start + 1:])
-            start+=1
-            end = title.find('</sup>')
-        title = title.replace('</sup>', '')
-    
-    return title
-
-
-
-# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * #
-#           CHARACTER TO SUBSCRIPT                                                  #
-# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * #
-
-def char_to_sub(argument):
-    output = ''
-    switcher = {
-        '0': '\u2080',
-        '1': '\u2081',
-        '2': '\u2082',
-        '3': '\u2083',
-        '4': '\u2084',
-        '5': '\u2085',
-        '6': '\u2086',
-        '7': '\u2087',
-        '8': '\u2088',
-        '9': '\u2089',
-        '+': '\u208A',
-        '-': '\u208B',
-        '=': '\u208C',
-        '(': '\u208D',
-        ')': '\u208E',
-        'a': '\u2090',
-        'e': '\u2091',
-        'o': '\u2092',
-        'x': '\u2093',
-        'h': '\u2095',
-        'k': '\u2096',
-        'l': '\u2097',
-        'm': '\u2098',
-        'n': '\u2099',
-        'p': '\u209A',
-        's': '\u209B',
-        't': '\u209C',
-    }
-    output = switcher.get(argument, '?')
-    if '?' in output:
-        SUB = str.maketrans('aehijklmnoprstuvxy', 'ₐₑₕᵢⱼₖₗₘₙₒₚᵣₛₜᵤᵥₓᵧ')
-        output = argument.translate(SUB)
-    return output
-
-
-
-# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * #
-#           CHARACTER TO SUPERSCRIPT                                                #
-# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * #
-
-def char_to_sup(argument):
-    output = ''
-    switcher = {
-        '0': '\u2070',
-        '1': '\u00B9',
-        '2': '\u00B2',
-        '3': '\u00B3',
-        '4': '\u2074',
-        '5': '\u2075',
-        '6': '\u2076',
-        '7': '\u2077',
-        '8': '\u2078',
-        '9': '\u2079',
-        'i': '\u2071',
-        '+': '\u207A',
-        '-': '\u207B',
-        '=': '\u207C',
-        '(': '\u207D',
-        ')': '\u207E',
-        'n': '\u207F',
-    }
-    output = switcher.get(argument, '?')
-    if '?' in output:
-        SUP = str.maketrans('ABDEGHIJKLMNOPRTUVWabcdefghijklmnoprstuvwxyz', 'ᴬᴮᴰᴱᴳᴴᴵᴶᴷᴸᴹᴺᴼᴾᴿᵀᵁⱽᵂᵃᵇᶜᵈᵉᶠᵍʰⁱʲᵏˡᵐⁿᵒᵖʳˢᵗᵘᵛʷˣʸᶻ')
-        output = argument.translate(SUP)
-    return output
-
-
-
-# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * #
-#           DISPLAY WINDOW                                                          #
-# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * #
-
-def open_harvesting():
-    # Create window
-    harvesting = Toplevel()
-    harvesting.title('Harvesting Program')
-    harvesting_menu = Menu(harvesting) # Add menu bar
-    harvesting.configure(bg = '#003B49', menu = harvesting_menu)
-    harvesting.iconbitmap('R:/storage/libarchive/b/1. Processing/8. Other Projects/Scholars-Mine-GitHub/Control Panel/CODE/S&T_Logo.ico')
-
-    # Center the window on the screen
-    window_w = 400 # window width
-    window_h = 270 # window height
-
-    screen_w = harvesting.winfo_screenwidth() # screen width
-    screen_h = harvesting.winfo_screenheight() # screen height
-
-    x_coor = (screen_w/2) - (window_w/2) #middle of screen x coordinate
-    y_coor = (screen_h/2) #lower half of screen y coordinate
-
-    harvesting.geometry('%dx%d+%d+%d' % (window_w, window_h, x_coor, y_coor)) # place in middle
-
-    #Create a menu item
-    def header_command():
-        os.startfile('R:/storage/libarchive/b/1. Processing/8. Other Projects/Scholars-Mine-GitHub/Control Panel/Documentation/headers.txt')
-
-    #Create a menu item
+    # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * #
+    #                      Function Declaration and Initialization                      #
+    # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * #
+    # Open Help Documentation
     def open_help_documentation():
-        os.startfile('R:/storage/libarchive/b/1. Processing/8. Other Projects/Scholars-Mine-GitHub/Control Panel/Documentation/Harvesting Help.docx')
+        os.startfile('R:/storage/libarchive/a/zzz_Programs/Control Panel/Documentation/Excel Processing Help.pdf')
 
-    # Create a menu on the menu bar
-    file_menu = Menu(harvesting_menu, tearoff="off")
-    edit_menu = Menu(harvesting_menu, tearoff="off")
-    help_menu = Menu(harvesting_menu, tearoff="off")
-
-    #Create menu items
-    harvesting_menu.add_cascade(label = 'File', menu = file_menu)
-    harvesting_menu.add_cascade(label = 'Edit', menu = edit_menu)
-    harvesting_menu.add_cascade(label = 'Help', menu = help_menu)
-    file_menu.add_command(label = 'Browse', command = lambda : browse())
-    file_menu.add_command(label = 'Batch')
-    file_menu.add_command(label = 'Start', command = lambda : start())
-    file_menu.add_separator()
-    file_menu.add_command(label = 'Exit', command = harvesting.destroy)
-    edit_menu.add_command(label = 'Headers', command = header_command)
-    help_menu.add_command(label = 'Documentation', command = open_help_documentation)
-
-    #Create progress bar
-    progress = ttk.Progressbar(harvesting, orient = HORIZONTAL, length = 370, mode = 'determinate')
-
-    # Create a frame
-    frame = LabelFrame(harvesting, text = 'Select an Input File', bg = '#003B49', fg = 'white', font = 'tungsten 12 bold')
-
-    # Create a label
-    task = Label(harvesting, text = 'Waiting for a file', bg = '#003B49', fg = 'white', font = 'tungsten 12 bold')
-    file_label = Label(harvesting, text = 'File: N/A', bg = '#003B49', fg = 'white', font = 'tungsten 12 bold')
-
-    # Open Help Function
-    def open_help():
-        # Open word document
-        try:
-            os.startfile('**/*/Control Panel/Documentation/Harvesting Help.docx')
-        except:
-            error_popup('Could not find a help file to open.')
-
-    # Create a button
-    exit_button = Button(harvesting, text = 'Exit Harvesting', command = harvesting.destroy, bg = '#78BE20', fg = '#003B49', font = 'tungsten 12 bold', borderwidth = 1, relief = 'ridge')
-
-    # Place in window
-    frame.pack(padx = 20, pady = 10)
-    file_label.pack(padx = 20, pady = (0, 20))
-    progress.pack(padx = 5, pady = 5)
-    task.pack(padx = 20)
-    exit_button.pack(pady = (20, 0))
 
     # Error Message Popup
     def error_popup(error_message):
-        messagebox.showerror('Error', error_message)
+        messagebox.showerror("Error", error_message)
+
 
     # Warning Message Popup
     def warning_popup(warning_message):
-        messagebox.showwarning('Warning', warning_message)
+        messagebox.showwarning("Warning", warning_message)
+
 
     # Information Message Popup
     def info_popup(info_message):
         messagebox.showinfo('Information', info_message)
 
-    # Update Progress Bar
-    def update_progress(p, t):
-        # Update bar value
-        progress['value'] = (p/9)*100
 
-        # Update bar label
-        task.config(text = t)
-        task.pack()
+    # Update Progress Bar
+    def update_progress(p):  
+        # Update bar value
+        progress['value'] = (p/10)*100
 
         # Refresh window (very important line!)
-        harvesting.update_idletasks()
+        Both.update_idletasks()
         time.sleep(0.2)
 
-    # Function Click
+
+    # Select File(s) Button Function
     def browse():
         # Reset progress bar
-        update_progress(0, 'Waiting for a file')
+        update_progress(0)
 
         # Open file
-        harvesting.filename = filedialog.askopenfilename(initialdir = 'R:/storage/libarchive/b/1. Processing/8. Other Projects/Excel Files', title = 'Select Input', filetypes = (('Excel Workbook', '*.xlsx'),))
-        if harvesting.filename == '':
-            warning_popup('No file selected.')
-            file_label.config(text = 'File: N/A')
-            del harvesting.filename
+        global filenames
+        filenames = filedialog.askopenfilename(title = "Select Input", initialdir = "R:/storage/libarchive/b/1. Processing/8. Other Projects/Excel Files", filetypes = (("Excel Workbook", "*.xlsx"),), multiple = True)
+        if len(filenames) == 0:
+            warning_popup("No file(s) selected.")
+            file_label.config(text = "n/a")
         else:
-            # Get file name
-            name = harvesting.filename
-            for i in range(len(name)):
-                if '/' in name[-(i)]:
-                    name = 'File: ' + name[-(i-1):]
-                    break
+            #Update File Name Label
+            name_list = ''
+            for index in range(len(filenames)):
+                last_index = filenames[index].rfind('/')
+                name_list = name_list + str(filenames[index])[last_index + 1:]
+                if index != (len(filenames) - 1):
+                    name_list = name_list + '\n'
 
-            # Update Folder Name Label
-            file_label.config(text = name)
+            file_label.config(text = name_list)
 
-    # Main Function
+
+    # Start Button Function
+    def start():
+        global filenames
+        
+        for index in range(len(filenames)):
+            print('Processing: ' + str(filenames[index]))
+            author_split_main(filenames[index])
+            harvesting_main(filenames[index])
+        
+
+    # Author Split Main Function
+    def author_split_main(file_name):
+        update_progress(1)
+                
+        rdsheet = None
+        author_column = ''
+        excelName = ''
+
+        authority_database = sqlite3.connect('R:/storage/libarchive/a/zzz_Programs/faculty.db')
+        authority_cursor = authority_database.cursor()
+        def regexp(expr, item):
+            reg = re.compile(expr)
+            return reg.search(item) is not None
+        authority_database.create_function("REGEXP", 2, regexp)
+
+        sqlite3.enable_callback_tracebacks(True)   # <-- !\
+
+        authorDict = {}
+        rb = None
+
+        # Read in Excel file
+        with pd.ExcelFile(file_name) as excel_in:
+            df = pd.read_excel( excel_in, excel_in.sheet_names[0], header=0, index_col=False )
+
+        for i, c in enumerate( df.columns ):
+            if "_fname" in c:
+                df.iloc[ :, i ] = df.iloc[ :, i ].fillna('')
+                df.iloc[ :, i + 1 ] = df.iloc[ :, i + 1 ].fillna('')
+                for j in range( df.shape[0] ):
+                    split_name = df.iloc[ j, i ].split(" ")
+                    df.iloc[ j, i ] = split_name[0]
+                    split_name = split_name[1:]
+                    df.iloc[ j, i + 1 ] = " ".join( split_name )
+
+        # Find columns corresponding to S&T affiliates, that is, columns whose
+        ## "autho<i>_institution" is "Missouri University of Science and Technology"
+        author_columns = []
+        for r in range( df.shape[0] ):
+            for i, c in enumerate(df.columns):
+                if "_institution" in c and df.loc[r, c] == "Missouri University of Science and Technology":
+                    author_columns.append( (r, i-5) )
+
+        for c in df.columns:
+            if "_institution" in c:
+                # print(c, i+1)
+                t_df = df.loc[:, c] = ""
+
+        # $author_columns contains S&T graduate students, to filter them out, we will
+        ## filter them out by looking them up in the faculty.db
+        df["faculty_author_count"] = np.zeros( df.shape[0] )
+        dct_df = {}
+        for index in author_columns:
+            t_df = df.iloc[ index[0], index[1]:index[1]+7 ]
+
+            t_name_dct = { "first": t_df.values[0].split(" ")[0]
+                            , "last":t_df.values[2].split(" ")[0]
+                        }
+
+            t_query = authority_cursor.execute('SELECT authority_name,first_name, middle_name, last_name, email, department FROM faculty WHERE (last_name COLLATE NOCASE) LIKE :last AND (first_name COLLATE NOCASE) LIKE :first', t_name_dct).fetchall()
+            if len(t_query) == 1:
+                dct_df[ index ] = list(t_query[0])
+                df.loc[ index[0], "faculty_author_count" ] += 1
+            elif len(t_query) > 1:
+                t_query = list(t_query[0])
+                for i in [0,2,4,5]:
+                    t_query[i] = ""
+                t_query[-1] = "MANUAL-CHECK"
+                dct_df[ index ] = t_query
+                df.loc[ index[0], "faculty_author_count" ] = np.nan
+            else:
+                for key in t_name_dct:
+                    t_name_dct[key] = t_name_dct[key].replace(".","").replace(",","")
+                t_query = authority_cursor.execute('SELECT authority_name, first_name, middle_name, last_name, email, department FROM faculty WHERE (last_name COLLATE NOCASE) LIKE :last AND first_name REGEXP :first', t_name_dct).fetchall()
+                if len(t_query) == 1:
+                    dct_df[ index ] = list(t_query[0])
+                    df.loc[ index[0], "faculty_author_count" ] += 1
+                elif len(t_query) > 1:
+                    t_query = list(t_query[0])
+                    for i in [0,2,4,5]:
+                        t_query[i] = ""
+                    t_query[-1] = "MANUAL-CHECK"
+                    dct_df[ index ] = t_query
+                    df.loc[ index[0], "faculty_author_count" ] = np.nan
+
+        '''
+            For each S&T author, fill in
+                author{i}_fname	author{i}_mname	author{i}_lname	author{i}_suffix	author{i}_email	author{i}_institution	author{i}_is_corporate
+            with data taken from the faculty database and setting the institution to "Missouri University of Science and Technology"
+        '''
+        for index in dct_df:
+            try:
+                df.iloc[ index[0], index[1]:index[1]+7 ] = dct_df[index][1:4] + [""] + dct_df[index][4:5] + ["Missouri University of Science and Technology",""]
+            except:
+                print(dct_df[index], end="\n\n\n")
+
+        '''
+            Get total author count by counting non-empty last name columns
+        '''
+        df = df.fillna('')
+        df["total_author_count"] = np.zeros(df.shape[0])
+        for c in df.columns:
+            for r in range( df.shape[0] ):
+                if "_lname" == c[-6:] and df.loc[ r, c ]:
+                    # print(str(df.loc[ r, c ]) )
+                    df.loc[r, "total_author_count"] += 1
+
+        '''
+            (1) Get authorized names separated by '<br>'
+            (2) Get departments 1-4, non-repeating, in order of authors
+        '''
+        df["authorized_name"] = ""
+        for i in range(4):
+            df[ f"department{i+1}" ] = ""
+        for r in range( df.shape[0] ):
+            department_num = 1
+            authorized_name_list = ""
+            for index in dct_df:
+                if index[0] == r:
+                    authorized_name_list += dct_df[index][0] + "<br>"
+                    if department_num <= 4:
+                        department = dct_df[index][-1]
+                        department_runner = np.max( [1, department_num-1] )
+                        while department_runner >= 1:
+                            if department == df.loc[r, f"department{department_runner}"]:
+                                break
+                            department_runner -= 1
+                        # print( department_runner )
+                        if department_runner == 0:
+                            # print(department)
+                            df.loc[r, f"department{department_num}"] = department
+                            department_num += 1
+            authorized_name_list = authorized_name_list[:-4]
+            df.loc[ r, "authorized_name" ] = authorized_name_list
+
+        '''
+            Replace diacritics with appropriate token in columns: Abstract, Keywords, Funding Sponsor, Publisher, First name, Middle name, Last names, Source Publications
+        '''
+        df = ensure_encryption(df)
+
+        # Write in Excel file
+        with pd.ExcelWriter(f"{file_name[:-5]}_Author_Split.xlsx") as excel_out:
+            df.to_excel(excel_out, sheet_name="Sheet1", header=True, index=False)
+            #excel_out.close()
+            del df
+
+        update_progress(2)
+
+
+    # Character to subscript
+    def char_to_sub(argument):
+        output = ''
+        switcher = {
+            '0': '\u2080',
+            '1': '\u2081',
+            '2': '\u2082',
+            '3': '\u2083',
+            '4': '\u2084',
+            '5': '\u2085',
+            '6': '\u2086',
+            '7': '\u2087',
+            '8': '\u2088',
+            '9': '\u2089',
+            '+': '\u208A',
+            '-': '\u208B',
+            '=': '\u208C',
+            '(': '\u208D',
+            ')': '\u208E',
+            'a': '\u2090',
+            'e': '\u2091',
+            'o': '\u2092',
+            'x': '\u2093',
+            'h': '\u2095',
+            'k': '\u2096',
+            'l': '\u2097',
+            'm': '\u2098',
+            'n': '\u2099',
+            'p': '\u209A',
+            's': '\u209B',
+            't': '\u209C',
+        }
+        output = switcher.get(argument, '?')
+        if '?' in output:
+            SUB = str.maketrans('aehijklmnoprstuvxy', 'ₐₑₕᵢⱼₖₗₘₙₒₚᵣₛₜᵤᵥₓᵧ')
+            output = argument.translate(SUB)
+        return output
+
+
+    # Character to superscript
+    def char_to_sup(argument):
+        output = ''
+        switcher = {
+            '0': '\u2070',
+            '1': '\u00B9',
+            '2': '\u00B2',
+            '3': '\u00B3',
+            '4': '\u2074',
+            '5': '\u2075',
+            '6': '\u2076',
+            '7': '\u2077',
+            '8': '\u2078',
+            '9': '\u2079',
+            'i': '\u2071',
+            '+': '\u207A',
+            '-': '\u207B',
+            '=': '\u207C',
+            '(': '\u207D',
+            ')': '\u207E',
+            'n': '\u207F',
+        }
+        output = switcher.get(argument, '?')
+        if '?' in output:
+            SUP = str.maketrans('ABDEGHIJKLMNOPRTUVWabcdefghijklmnoprstuvwxyz', 'ᴬᴮᴰᴱᴳᴴᴵᴶᴷᴸᴹᴺᴼᴾᴿᵀᵁⱽᵂᵃᵇᶜᵈᵉᶠᵍʰⁱʲᵏˡᵐⁿᵒᵖʳˢᵗᵘᵛʷˣʸᶻ')
+            output = argument.translate(SUP)
+        return output
+
+
+    # Fix subscript and superscript
+    def replace_sub_sup(title):
+        while('</sub>' in title):
+            start = title.find('<sub>')
+            end = title.find('</sub>')
+            title = title.replace('<sub>', '')
+            while start != end:
+                title = str(title[0:start]) + str(char_to_sub(title[start])) + str(title[start + 1:])
+                start+=1
+                end = title.find('</sub>')
+            title = title.replace('</sub>', '')
+
+        while('</sup>' in title):
+            start = title.find('<sup>')
+            end = title.find('</sup>')
+            title = title.replace('<sup>', '')
+            while start != end:
+                title = str(title[0:start]) + str(char_to_sup(title[start])) + str(title[start + 1:])
+                start+=1
+                end = title.find('</sup>')
+            title = title.replace('</sup>', '')
+        
+        return title
+
+
+    # Change a date object like '2021-03-04 00:00:00' to '03 thru 04'
+    # Excel mistakenly reads things like '3-4' as dates and we don't want that
+    def date_to_num(input):
+        input = input.split() #separate date from timestamp ['2021-03-04','00:00:00']
+        input = input[0].split('-', 1) #separate year from month&day ['2021', '03-04']
+        input = input[1].split('-') #separte month and day ['03, 04']
+
+        #cast to and int and then back to a string to get rid of leading 0's
+        if int(input[0]) < int(input[1]):
+            return str(int(input[0])) + ' thru ' + str(int(input[1]))
+        else:
+            return str(int(input[1])) + ' thru ' + str(int(input[0]))
+
+
+    # Harvesting Main Function
     def harvesting_main(file_name):
-        update_progress(1, 'Harvesting files...')
+        update_progress(3)
+        file_name = f"{file_name[:-5]}_Author_Split.xlsx"
 
         # Load Excel File
         old_path = str(file_name)
@@ -278,7 +388,7 @@ def open_harvesting():
         new_sheet = new_book.active         #create worksheet
 
         #Read in column headers
-        f = open('R:/storage/libarchive/b/1. Processing/8. Other Projects/Scholars-Mine-GitHub/Control Panel/Documentation/headers.txt', 'r')
+        f = open('R:/storage/libarchive/a/zzz_Programs/Control Panel/Documentation/headers.txt', 'r')
         headers = f.read()
         f.close()
 
@@ -439,7 +549,7 @@ def open_harvesting():
             except:
                 if row == 2:
                     warning_popup("Couldn't transfer 'additional_text_uri' column.")
-              
+                
             # author_classification
             fill('author_classification', 'faculty')
                 
@@ -578,37 +688,49 @@ def open_harvesting():
             
             # rights
             try:
+                current_year = datetime.today().year
+                rights = ''
+
                 #Loop through pathways
                 for num in range(1, pathway_count + 1):
                     #Check if published
                     if old_sheet.cell(row, get_old_index(f'Pathway {num}: Version')).value == 'Published Version':
-                        if old_sheet.cell(row, get_old_index(f'Pathway {num}: Copyright Owners')).value:
+                        if old_sheet.cell(row, get_old_index(f'Pathway {num}: Copyright Owners')).value and old_sheet.cell(row, get_old_index(f'Pathway {num}: Copyright Owners')).value != 'Publishers':
                             copyright_owners = old_sheet.cell(row, get_old_index(f'Pathway {num}: Copyright Owners')).value
-                            rights = '© 2021 ' + str(copyright_owners) + ', All rights reserved.'
+
+                            if copyright_owners == 'Authors':
+                                copyright_owners = 'The Authors'
+
+                            rights = '© ' + str(current_year) + ' ' + str(copyright_owners) + ', All rights reserved.'
+                            break
                         break
+                    elif str(old_sheet.cell(row, get_old_index(f'Pathway {num}: Version')).value) == 'None':
+                        break
+
+                # Rights has not been filled yet    
+                if rights == '':
+                    #Get initial value
+                    publishers = str(old_sheet.cell(row, get_old_index('Publisher(s)')).value)
+
+                    #Check if empty
+                    if(publishers.count('None') > 0):
+                        rights = '© ' + str(current_year) + ', All rights reserved.'
                     else:
-                        #Get initial value
-                        publishers = str(old_sheet.cell(row, get_old_index('Publisher(s)')).value)
+                        #Initialize list
+                        publisher_list = [publishers]
 
-                        #Check if empty
-                        if(publishers.count('None') > 0):
-                            rights = '© 2021, All rights reserved.'
-                        else:
-                            #Initialize list
-                            publisher_list = [publishers]
+                        #Split if multiple publishers
+                        if(publishers.count(';') > 0):
+                            publisher_list = publishers.split('; ')
 
-                            #Split if multiple publishers
-                            if(publishers.count(';') > 0):
-                                publisher_list = publishers.split('; ')
-                            
-                            #Get rid of unwanted info
-                            for index in range(len(publisher_list)):
-                                publisher_list[index] = publisher_list[index].split(' [')[0]
+                        #Get rid of unwanted info
+                        for index in range(len(publisher_list)):
+                            publisher_list[index] = publisher_list[index].split(' [')[0]
 
-                            #Combine if multiple
-                            publishers = '; '.join([str(elem) for elem in publisher_list])
+                        #Combine if multiple
+                        publishers = '; '.join([str(elem) for elem in publisher_list])
 
-                            rights = '© 2021 ' + str(publishers) + ', All rights reserved.'
+                        rights = '© ' + str(current_year) + ' ' + str(publishers) + ', All rights reserved.'
 
                 fill('rights', rights)
             except:
@@ -642,7 +764,7 @@ def open_harvesting():
                         date = date.split() #gets rid of time in the format
                         fill('publication_date', date[0])
             except:
-                print('')
+                warning_popup("Couldn't transfer 'publication_date' column.")
 
             # custom_publication_date
             try:
@@ -656,7 +778,7 @@ def open_harvesting():
                     date = date.split('-') #WORKS WHEN FORMAT IS '2020-02-01'
 
                     # Get month in letters
-                    x = datetime.datetime(int(date[0]), int(date[1]), int(date[2]))
+                    x = datetime(int(date[0]), int(date[1]), int(date[2]))
                     month = x.strftime('%b')
 
                     # Output
@@ -668,25 +790,25 @@ def open_harvesting():
             try:
                 #Get initial value
                 publishers = str(old_sheet.cell(row, get_old_index('Publisher(s)')).value)
-
+                
                 #Check if empty
                 if(publishers.count('None') > 0):
                     publishers = ''
                 else:
                     #Initialize list
                     publisher_list = [publishers]
-
+                  
                     #Split if multiple publishers
                     if(publishers.count(';') > 0):
                         publisher_list = publishers.split('; ')
-                    
+                       
                     #Get rid of unwanted info
                     for index in range(len(publisher_list)):
                         publisher_list[index] = publisher_list[index].split(' [')[0]
-
+                       
                     #Combine if multiple
                     publishers = '; '.join([str(elem) for elem in publisher_list])
-
+                    
                 # Output
                 fill('publisher', publishers)
             except:
@@ -763,23 +885,31 @@ def open_harvesting():
                 warning_popup('An error occured while copying author information. Excel may be incomplete.')
 
         # Transfer row information for the whole sheet
-        update_progress(2, 'Harvesting files...') # Filling in ' + str(old_max_row) + ' rows
+        update_progress(4) # Filling in ' + str(old_max_row) + ' rows
 
         for row in range(2, old_max_row + 1):
             row_information(row)
 
         # Fix All Uppercase Titles
-        update_progress(3, 'Harvesting files...') # Fixing all uppercase titles
+        update_progress(5) # Fixing all uppercase titles
 
         try:
             for row in range(2, new_max_row):
+                # Get the title
                 title = new_sheet.cell(row, get_new_index('title')).value
-                fill('title', title.title())
+                # Split the title on the spaces
+                title = title.split()
+                # Capitalize each first letter
+                cap_title = str()
+                for index in range(len(title)):
+                    cap_title = cap_title + title[index][0].capitalize() + title[index][1:] + ' '
+                #Replace uncapitalized Title
+                fill('title', cap_title[:-1])
         except:
             warning_popup('An error occured while fixing uppercase titles. Excel may be incomplete.')
 
         # Fix Subscripts and
-        update_progress(4, 'Harvesting files...') # Fixing subscripts and superscripts
+        update_progress(6) # Fixing subscripts and superscripts
 
         try:
             for row in range(2, new_max_row):
@@ -788,7 +918,7 @@ def open_harvesting():
             warning_popup('An error occured while fixing subscripts and superscripts. Excel may be incomplete.')
 
         # Switching All Dates to Numbers
-        update_progress(5, 'Harvesting files...') # Switching all dates to numbers
+        update_progress(7) # Switching all dates to numbers
 
         try:
             for row in range(2, new_max_row):
@@ -817,7 +947,7 @@ def open_harvesting():
             warning_popup('An error occured while fixing date formats. Excel may be incomplete.')
 
         # Format Columns
-        update_progress(8, 'Harvesting files...') # Adjusting column width
+        update_progress(8) # Adjusting column width
 
         try:
             for new_col in range(1, new_max_col + 1):
@@ -836,33 +966,56 @@ def open_harvesting():
             warning_popup('An error occured while adjusting column width. Some column widths may not have changed.')
 
         # Save excel
-        update_progress(9, 'Harvesting files...') # Saving
+        update_progress(9) # Saving
 
         try:
             new_path = str(file_name)[:len(file_name) - 18] + '_Completed.xlsx'
             new_book.save(new_path)
 
-            saved_name = new_path.split('/')
-            info_popup("'" + str(saved_name[-1]) + "' has been saved.")
-
-            update_progress(10, 'Excel Created')
+            update_progress(10)
         except:
-            error_popup('An error occured while saving the excel. The excel may not have been saved.')
+            new_path = str(file_name)[:len(file_name) - 18] + '_Completed.xlsx'
+            saved_name = new_path.split('/')
+            error_popup(str(saved_name[-1]) + "' could not be saved.")
 
-    # Start Button Function
-    def start():
-        # Run program and update progress bar
-        #try:
-        harvesting_main(harvesting.filename)
-        #except PermissionError:
-        #    error_popup('Could not save processed excel. The excel file that needs to be saved over is currently open. Close the excel file and hit the 'start' button again.')
-        #except:
-        #    error_popup('There was an unknown error, the file could not be processed.')
 
-    # Create a button
-    browse_button = Button(frame, text = 'Browse', command = lambda : browse(), bg = '#78BE20', fg = '#003B49', font = 'tungsten 12 bold', borderwidth = 1, relief = 'ridge')
-    start_button = Button(frame, text = 'Start', command = lambda : start(), bg = '#78BE20', fg = '#003B49', font = 'tungsten 12 bold', borderwidth = 1, relief = 'ridge')
 
-    # Place in frame
-    browse_button.grid(row = 0, column = 0, padx = (15, 0), pady = 15)
-    start_button.grid(row = 0, column = 1, padx = 15, pady = 15)
+    # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * #
+    #                                      Main                                         #
+    # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * #
+
+    # Customize window
+    Both.title('Excel Processing Program')
+    Both.configure(bg = '#003B49')
+    Both.iconbitmap('R:/storage/libarchive/a/zzz_Programs/Control Panel/CODE/S&T_Logo.ico')
+
+    # Place in window
+    top_frame.pack(padx = 20, pady = 10)
+    middle_frame.pack(padx = 20, pady = 0, fill = BOTH, expand = 1)
+    bottom_frame.pack(padx = 20, pady = 10)
+
+    # Place in top_frame
+    help_button.pack(side = RIGHT, padx = 5)
+    select_button.pack(side = LEFT, padx = 5)
+
+    # Place in middle_frame
+    scroll_bar.pack(side = RIGHT, fill = Y)
+    label_canvas.pack(side = LEFT, fill = BOTH, expand = 1)
+
+    # Place in bottom_frame
+    progress.grid(row = 1, column = 0, padx = 5, pady = 5)
+    start_button.grid(row = 1, column = 1, padx = 5, pady = 5)
+
+    # Configure
+    label_canvas.configure(yscrollcommand = scroll_bar.set)
+    label_canvas.bind('<Configure>', lambda e: label_canvas.configure(scrollregion = label_canvas.bbox("all")))
+    label_canvas.bind_all('<MouseWheel>', lambda e: label_canvas.yview('scroll', (-1*e.delta), "units"))
+
+    # Place in Canvas
+    label_canvas.create_window((0, 0), window = canvas_frame, anchor = 'nw')
+
+    # Place in canvas_frame
+    file_label.pack(fill = BOTH)
+
+    # Keeps window open until closed
+    Both.mainloop()

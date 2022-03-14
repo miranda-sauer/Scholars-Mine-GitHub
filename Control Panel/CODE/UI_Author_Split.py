@@ -17,6 +17,7 @@ from tkinter import messagebox
 import time
 import datetime
 from author_diacritics import ensure_encryption
+import re
 
 
 
@@ -102,8 +103,8 @@ def open_author_split():
         # Open file
         author_split.filename = filedialog.askopenfilename(initialdir = "R:/storage/libarchive/b/1. Processing/8. Other Projects/Excel Files", title = "Select Input", filetypes = (("Excel Workbook", "*.xlsx"),))
         if author_split.filename == "":
-            warning_popup("No folder selected.")
-            file_label.config(text = "Folder: N/A")
+            warning_popup("No file selected.")
+            file_label.config(text = "File: N/A")
             del author_split.filename
         else:
             #Get file name
@@ -117,7 +118,7 @@ def open_author_split():
             file_label.config(text = name)
 
     # Main Function
-    def main():
+    def author_split_main(file_name):
         update_progress(1, "Splitting Authors...")
                 
         rdsheet = None
@@ -131,11 +132,13 @@ def open_author_split():
             return reg.search(item) is not None
         authority_database.create_function("REGEXP", 2, regexp)
 
+        sqlite3.enable_callback_tracebacks(True)   # <-- !\
+
         authorDict = {}
         rb = None
 
         # Read in Excel file
-        with pd.ExcelFile(author_split.filename) as excel_in:
+        with pd.ExcelFile(file_name) as excel_in:
             df = pd.read_excel( excel_in, excel_in.sheet_names[0], header=0, index_col=False )
 
         for i, c in enumerate( df.columns ):
@@ -186,7 +189,7 @@ def open_author_split():
             else:
                 for key in t_name_dct:
                     t_name_dct[key] = t_name_dct[key].replace(".","").replace(",","")
-                t_query = authority_cursor.execute('SELECT authority_name,first_name, middle_name, last_name, email, department FROM faculty WHERE (last_name COLLATE NOCASE) LIKE :last AND first_name REGEXP :first', t_name_dct).fetchall()
+                t_query = authority_cursor.execute('SELECT authority_name, first_name, middle_name, last_name, email, department FROM faculty WHERE (last_name COLLATE NOCASE) LIKE :last AND first_name REGEXP :first', t_name_dct).fetchall()
                 if len(t_query) == 1:
                     dct_df[ index ] = list(t_query[0])
                     df.loc[ index[0], "faculty_author_count" ] += 1
@@ -254,9 +257,9 @@ def open_author_split():
         df = ensure_encryption(df)
 
         # Write in Excel file
-        with pd.ExcelWriter(f"{author_split.filename[:-5]}_Author_Split.xlsx") as excel_out:
+        with pd.ExcelWriter(f"{file_name[:-5]}_Author_Split.xlsx") as excel_out:
             df.to_excel(excel_out, sheet_name="Sheet1", header=True, index=False)
-            excel_out.close()
+            #excel_out.close()
             del df
 
         update_progress(2, "Excel Created")
@@ -264,12 +267,12 @@ def open_author_split():
     # Start Button Function
     def start():
         # Run program and update progress bar
-        try:
-            main()
+        #try:
+        author_split_main(author_split.filename)
         #except AttributeError:
             #error_popup("No folder selected. Browse to select a folder.")
-        except:
-            error_popup("There was an unknown error, the file could not be processed.")
+        #except:
+        #    error_popup("There was an unknown error, the file could not be processed.")
 
     # Create a button
     browse_button = Button(frame, text = "Browse", command = lambda : browse(), bg = '#78BE20', fg = '#003B49', font = 'tungsten 12 bold', borderwidth = 1, relief = "ridge")

@@ -20,7 +20,7 @@ def open_cannon_remake():
     cannon_remake = Toplevel()
     cannon_remake.title("Cannon Remake Program")
     cannon_remake.configure(bg = '#003B49')
-    cannon_remake.iconbitmap('R:/storage/libarchive/b/1. Processing/8. Other Projects/Scholars-Mine-GitHub/Control Panel/CODE/S&T_Logo.ico')
+    cannon_remake.iconbitmap('R:/storage/libarchive/a/zzz_Programs/Control Panel/CODE/S&T_Logo.ico')
 
     # Center the window on the screen
     window_w = 400 # window width
@@ -48,7 +48,7 @@ def open_cannon_remake():
     def open_help():
         # Open word document
         try:
-            os.startfile("R:/storage/libarchive/b/1. Processing/8. Other Projects/Control Panel/Documentation/Cannon Remake Help.docx")
+            os.startfile("R:/storage/libarchive/a/zzz_Programs/Control Panel/Documentation/Cannon Remake Help.docx")
         except:
             error_popup("Could not open help file.")
 
